@@ -213,7 +213,7 @@ class OdooDatas(base.OdooModule):
         params = datas.get('params')
         if params:
             res_id = datas.get('res_id', False)
-            function_params = [res_id] if res_id else [0]
+            function_params = [res_id] if res_id else []
             for param in params:
                 param_val = self.eval_param_value(param)
                 function_params.append(param_val)
