@@ -1,13 +1,18 @@
 odoo-configurator
 =================
 
-Update Odoo database with YAML files
+Odoo Configurator simplifies and automates the configuration of Odoo using YAML files. 
+It allows you to update the database, install/update/uninstall modules, configure settings, 
+manage users, and perform various data manipulation operations. 
+It is an essential tool for Odoo administrators looking to streamline their configuration workflow.
 
 ## Installation
-    sudo pip3 install -r requirements.txt
+
+    pip install odoo-configurator
 
 ## Usage
-    ./start_config.py ../work_dir/cutomer_name.local.yml
+
+    odoo-configurator ./work_dir/cutomer_name.local.yml
 
 Provided file must contain the auth/odoo section to set connexion parameters.
 
@@ -34,7 +39,7 @@ Inherits param provide a list of configuration files witch content is merged bef
         - ../work_dir/cutomer_name/sales.yml
         - ../work_dir/cutomer_name/account.yml
     
-# Script Files
+## Script Files
 
 Script Files param provide a list of configuration files witch content will be executed sequentially.
 
@@ -48,6 +53,14 @@ Script Files param provide a list of configuration files witch content will be e
 line:
 
     ./start_config.py ./clients/name/name.local.yml --install
+
+## Environment variables
+
+Some parameters can be provided by environment variable.
+
+Use ODOO_URL, ODOO_DB, ODOO_USER and ODOO_PASSWORD instead of using auth/odoo params in config file
+
+Use KEEPASS_PASSWORD instead of --keepass command line parameter
 
 ## Pre Update
 
@@ -77,7 +90,7 @@ To uninstall modules use "uninstall_modules"
       uninstall_modules:
         - example_module
 
-# Set config parameters (Settings)
+## Set config parameters (Settings)
 
 to set the value of a setting (res.config.settings)
 
@@ -92,9 +105,47 @@ For a specific company:
         company_id: get_ref("base.main_company")
         chart_template_id: get_ref("l10n_fr.l10n_fr_pcg_chart_template")
 
-# Update data
+## Create or update records
+    
+If the record with the xml id provided with force_id don't exist, the record will be created.    
 
-You can update values on a model according to a domain with "update_domain":
+    Records to create:
+        datas:
+            My record 1:
+                model: res.partner
+                force_id: external_config.partner_1
+                values:
+                    name: Partner 1
+                    ref: PARTNER1
+            My record 2:
+                model: res.user
+                force_id: base.user_admin
+                values:
+                    name: Admin User
+
+
+## Load records
+
+Using load parameter will speed up creation and update of record compared to single record update.
+
+    Records to load:
+        load: True
+        model: res.partner
+        datas:
+            My record 1:
+                force_id: external_config.record1
+                values:
+                    name: Record 1
+                    ref: REC1
+            My record 2:
+                force_id: external_config.record2
+                values:
+                    name: Record 2
+                    ref: REC2
+
+## Update records with a domain
+
+To update values of multiple records, set a domain with "update_domain" :
 
     Update Example:
       model: res.partner
@@ -102,7 +153,8 @@ You can update values on a model according to a domain with "update_domain":
       values:
         name: Example
 
-# Server Actions and Functions
+## Server Actions and Functions
+
 To call a model function:
 
     001 Call Function:
@@ -209,24 +261,25 @@ A column "id" is required to allow update of datas.
 
 In yml file:
 
-    import_csv Product Template:
-        on_install_only: True
-        model: product.template
-        name_create_enabled_fields: uom_id,uom_po_id,subscription_template_id
-        file_path: ../datas/todoo/product.template.csv
-        specific_import: base/import_specific.py
-        specific_method: import_partner
-        batch_size: 200
-        skip_line: 1420
-        limit: 100
-        context: {'install_mode': True}
+    import_data:
+        import_csv Product Template:
+            on_install_only: True
+            model: product.template
+            name_create_enabled_fields: uom_id,uom_po_id,subscription_template_id
+            file_path: ../datas/todoo/product.template.csv
+            specific_import: base/import_specific.py
+            specific_method: import_partner
+            batch_size: 200
+            skip_line: 1420
+            limit: 100
+            context: {'install_mode': True}
 
-Required fields:
+### Required fields:
 
   - model
   - file_path
 
-Optional fields:
+### Optional fields:
 
   - **name_create_enabled_fields** : List of the fields which are allowed to "Create the record if it doesn't exist"
   - **on_install_only** : Do the csv export only in **Install Mode**
@@ -241,11 +294,11 @@ Optional fields:
 ## Contributors
 
 * David Halgand
-* Michel Perrocheau
+* Michel Perrocheau - [Github](https://github.com/myrrkel)
 
 
 ## Maintainer
 
-This module is maintained by [Teclib' ERP](https://www.teclib-erp.com).
+This module is maintained by [Hodei](https://www.hodei.net).
 
-![Teclib' ERP](./logo.png)
+![](./logo.jpg)

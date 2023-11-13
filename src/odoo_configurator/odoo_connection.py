@@ -125,7 +125,7 @@ class OdooConnection:
             else:
                 self.logger.error(pformat(args))
                 if isinstance(e, xmlrpc.client.Fault):
-                    self.logger.error(e.faultString)
+                    self.logger.error(e.faultString, exc_info=True)
                 else:
                     self.logger.error(e)
                 raise e
@@ -156,6 +156,7 @@ class OdooConnection:
             self._cache['path'][path] = base64.b64encode(open(path, "rb").read()).decode("utf-8", "ignore")
             self._save_cache()
         return self._cache['path'][path]
+
     @staticmethod
     def get_local_file(path, encode=False):
         if encode:
