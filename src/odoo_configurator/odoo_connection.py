@@ -199,8 +199,11 @@ class OdooConnection:
         try:
             domain = [('model', '=', model), ('res_id', '=', res_id)]
             res = self.execute_odoo('ir.model.data', 'search_read', [domain, ['module', 'name'], 0, 0, "id"],
-                                    {'context': self._context})[0]
-            return "%s.%s" % (res['module'], res['name'])
+                                    {'context': self._context})
+            if not res:
+                return
+            ir_model_data = res[0]
+            return "%s.%s" % (ir_model_data['module'], ir_model_data['name'])
         except Exception as e:  # TODO : get true exception type and return False
             raise e
             # return False
@@ -216,4 +219,21 @@ class OdooConnection:
         res = self.execute_odoo(model, 'search_read',
                                 [domain],
                                 {'context': context or self._context})
+        return res
+
+    def search(self, model, domain=[], fields=[], order=[], offset=0, limit=0, context=False):
+        params = [domain, fields, offset, limit, order]
+        res = self.execute_odoo(model, 'search_read', params, {'context': context or self._context})
+        return res
+
+    def get_record(self, model, rec_id, context=False):
+        params = [[('id', '=', rec_id)]]
+        res = self.execute_odoo(model, 'search_read',
+                                params,
+                                {'context': context or self._context})
+        if res:
+            return res[0]
+
+    def default_get(self, model, field):
+        res = self.execute_odoo(model, 'default_get', [field])
         return res
