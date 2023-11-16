@@ -58,11 +58,10 @@ class ImportConfigurator(base.OdooModule):
     display_name_prefix_fields = []
 
     def get_configurator_records(self, model, domain=[], excluded_fields=[], force_export_fields=[],
-                                 order_by='', display_name_prefix_fields='', group=[]):
+                                 order_by='', display_name_prefix_fields='', group_by=[]):
         files = []
         self.display_name_prefix_fields = display_name_prefix_fields
         if not model:
-            self.logger.info('ERROR MODEL: %s' % model)
             return ''
         records = self.search(model, domain, order=order_by)
         if not records:
@@ -75,11 +74,12 @@ class ImportConfigurator(base.OdooModule):
         for i, record in enumerate(records):
             self.logger.info("Export %s : %s/%s", model, i, len(records))
             record_group = model_id['name'].title().replace(':', '')
-            if group:
-                if hasattr(record[group], 'name'):
-                    record_group = '%s - %s' % (record[group].name, record_group)
+            if group_by:
+                if isinstance(record[group_by], list):
+                    group_by_name = record[group_by][1]
                 else:
-                    record_group = '%s - %s' % (record[group], record_group)
+                    group_by_name = record[group_by]
+                record_group = '%s - %s' % (group_by_name, record_group)
             if prev_record_group != record_group:
                 res += '\n%s:' % record_group
                 res += '\n%s%s:' % (" " * 4, 'datas')
@@ -116,6 +116,7 @@ class ImportConfigurator(base.OdooModule):
         return res, files
 
     def load_model_fields(self, model):
+        self.model_fields = dict()
         fields = self.search('ir.model.fields', [('model', '=', model)])
         for field in fields:
             self.model_fields[field['name']] = {'field': field,
@@ -128,6 +129,10 @@ class ImportConfigurator(base.OdooModule):
         if field_name in excluded_fields:
             return True
         if field_name.startswith('__'):
+            return True
+        if not field.get('store', True):
+            return True
+        if field.get('related', False):
             return True
 
     def get_field_value(self, record, field, files):
@@ -236,6 +241,7 @@ class ImportConfigurator(base.OdooModule):
                         model = model_file.get('model')
                         domain = model_file.get('domain')
                         order_by = model_file.get('order_by')
+                        group_by = model_file.get('group_by')
                         force_export_fields = model_file.get('force_export_fields', [])
                         excluded_fields = model_file.get('excluded_fields', [])
                         display_name_prefix_fields = model_file.get('display_name_prefix_fields', [])
@@ -243,6 +249,7 @@ class ImportConfigurator(base.OdooModule):
                         dest_path = os.path.dirname(self._configurator.paths[0]) + '/config'
                         res, files = self.get_configurator_records(model, domain,
                                                                    order_by=order_by,
+                                                                   group_by=group_by,
                                                                    force_export_fields=force_export_fields,
                                                                    excluded_fields=excluded_fields,
                                                                    display_name_prefix_fields=display_name_prefix_fields)
