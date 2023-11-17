@@ -22,6 +22,10 @@ class OdooModule:
         if self._connection:
             self._context = self._connection.context.copy()
             self.execute_odoo = self._connection.execute_odoo
+            self.search = self._connection.search
+            self.get_xml_id_from_id = self._connection.get_xml_id_from_id
+            self.get_record = self._connection.get_record
+            self.default_get = self._connection.default_get
         self.logger = get_logger(self._name.ljust(15))
         if self._debug:
             self.logger.setLevel(logging.DEBUG)

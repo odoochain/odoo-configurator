@@ -105,7 +105,7 @@ class Configurator:
 
         while len(parsed_config.get("inherits", [])) != count_inherit:
             count_inherit = len(parsed_config.get("inherits", []))
-            config_files = self.paths + self.get_files_path(parsed_config['inherits']) + self.paths
+            config_files = self.paths + self.get_files_path(parsed_config['inherits'])
             logger.info("Configuration Loading %s" % (",".join(config_files)))
             parsed_config = hiyapyco.load(config_files, method=hiyapyco.METHOD_MERGE, interpolate=True,
                                           failonmissingfiles=True, loglevel='INFO')
