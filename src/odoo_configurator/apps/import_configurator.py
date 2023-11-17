@@ -58,7 +58,7 @@ class ImportConfigurator(base.OdooModule):
     display_name_prefix_fields = []
 
     def get_configurator_records(self, model, domain=[], excluded_fields=[], force_export_fields=[],
-                                 order_by='', display_name_prefix_fields='', group_by=[]):
+                                 order_by='', display_name_prefix_fields='', group_by=[], with_load=False):
         files = []
         self.display_name_prefix_fields = display_name_prefix_fields
         if not model:
@@ -82,12 +82,17 @@ class ImportConfigurator(base.OdooModule):
                 record_group = '%s - %s' % (group_by_name, record_group)
             if prev_record_group != record_group:
                 res += '\n%s:' % record_group
+                if with_load:
+                    res += '\n%s%s: %s' % (" " * 4, 'load', with_load)
+                    res += '\n%s%s: %s' % (" " * 4, 'model', model)
                 res += '\n%s%s:' % (" " * 4, 'datas')
                 prev_record_group = record_group
 
             values = ""
             rec_name = self.get_record_name(record, model)
-            rec_name = '%s %s' % (self.get_record_prefix(record, model), rec_name)
+            prefix = self.get_record_prefix(record)
+            if prefix:
+                rec_name = '%s %s' % (prefix, rec_name)
 
             xmlid = self.get_xmlid(model, record.get('id'))
             if not xmlid:
@@ -154,6 +159,7 @@ class ImportConfigurator(base.OdooModule):
             files.append((file_name, binary_data))
             name = "\n%s%s: %s" % (" " * 4 * 4, field_name, 'get_image_local("%s")' % file_name)
         elif field_type == 'many2many':
+            # Todo : import many2many values
             # rec_values = ''
             # xmlid_list = sort_xml_ids([val.get_xml_id()[val.id] for val in record[field_name]])
             # for xmlid in xmlid_list:
@@ -207,7 +213,7 @@ class ImportConfigurator(base.OdooModule):
             pass
         return ''
 
-    def get_record_prefix(self, record, model):
+    def get_record_prefix(self, record):
         prefix_words = []
         for field_name in self.display_name_prefix_fields:
             field_id = self.model_fields[field_name]['field']
@@ -242,6 +248,7 @@ class ImportConfigurator(base.OdooModule):
                         domain = model_file.get('domain')
                         order_by = model_file.get('order_by')
                         group_by = model_file.get('group_by')
+                        load = model_file.get('load')
                         force_export_fields = model_file.get('force_export_fields', [])
                         excluded_fields = model_file.get('excluded_fields', [])
                         display_name_prefix_fields = model_file.get('display_name_prefix_fields', [])
@@ -250,6 +257,7 @@ class ImportConfigurator(base.OdooModule):
                         res, files = self.get_configurator_records(model, domain,
                                                                    order_by=order_by,
                                                                    group_by=group_by,
+                                                                   with_load=load,
                                                                    force_export_fields=force_export_fields,
                                                                    excluded_fields=excluded_fields,
                                                                    display_name_prefix_fields=display_name_prefix_fields)
