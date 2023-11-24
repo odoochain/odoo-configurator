@@ -2,6 +2,8 @@
 # Copyright (C) 2023 - Teclib'ERP (<https://www.teclib-erp.com>).
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl.html).
 
+from datetime import date
+import glob
 import logging
 import os.path
 import sys
@@ -39,6 +41,8 @@ class Configurator:
     config = dict()
     pre_update_config = dict()
     xmlid_cache = dict()
+    release_directory = ''
+    clear_release_directory = False
 
     def __init__(self, paths=False, install=False, update=False, debug=False, debug_xmlrpc=False, keepass='',
                  config_dict=None):
@@ -106,6 +110,11 @@ class Configurator:
         while len(parsed_config.get("inherits", [])) != count_inherit:
             count_inherit = len(parsed_config.get("inherits", []))
             config_files = self.paths + self.get_files_path(parsed_config['inherits'])
+            if parsed_config.get('release_directory'):
+                self.release_directory = parsed_config['release_directory']
+                config_files += self.get_release_files()
+            if parsed_config.get('clear_release_directory'):
+                self.clear_release_directory = parsed_config.get('clear_release_directory')
             logger.info("Configuration Loading %s" % (",".join(config_files)))
             parsed_config = hiyapyco.load(config_files, method=hiyapyco.METHOD_MERGE, interpolate=True,
                                           failonmissingfiles=True, loglevel='INFO')
@@ -127,6 +136,24 @@ class Configurator:
                 parsed_config['scripts'].append(parsed_script)
 
         return parsed_config, pre_update_config
+
+    def get_release_files(self):
+        files = []
+        if os.path.isdir(self.release_directory):
+            files = glob.glob(os.path.join(self.release_directory, '*.yml'))
+        return files
+
+    def backup_release_directory(self):
+        if os.path.isdir(self.release_directory):
+            bak_dir = os.path.join(self.release_directory, 'bak')
+            if not os.path.isdir(bak_dir):
+                os.mkdir(bak_dir)
+            release_bak_dir = os.path.join(bak_dir, str(date.today()))
+            if not os.path.isdir(release_bak_dir):
+                os.mkdir(release_bak_dir)
+            for file in self.get_release_files():
+                bak_file = os.path.join(release_bak_dir, os.path.basename(file))
+                os.rename(file, bak_file)
 
     def get_files_path(self, files):
         res = []
@@ -187,4 +214,5 @@ class Configurator:
         import_configurator.ImportConfigurator(self)
         mattermost.Mattermost(self)
         call.OdooCalls(self)
+        self.backup_release_directory()
         return self.get_log()

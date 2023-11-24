@@ -327,10 +327,26 @@ Actions:
     import_configurator_model_file:
         Portal Form:
             model: res.partner
-            domain: [('is_company', '=', True)]
+            domain: [['is_company', '=', True]]  # Don't use parenthesis in the domain
             order_by: name, ref
             force_export_fields: ["email_formatted", "country_code"]
             excluded_fields: ["email", "country_id"]
+```
+
+## Release Configuration
+
+Some configurations need to be executed on every platform until the production release. After that we need to archive these configuration files.
+We will store the files in the directory for example.
+To run all these files, add the release_directory parameter in you main configuration file:
+
+```yml
+    release_directory: ./release_config
+```
+
+To back up the release files after the execution of the production configuration, add the clear_release_directory parameter in you production configuration file.
+
+```yml
+  clear_release_directory: True
 ```
 
 ## Contributors
