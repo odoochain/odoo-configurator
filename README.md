@@ -336,14 +336,14 @@ Actions:
 ## Release Configuration
 
 Some configurations need to be executed on every platform until the production release. After that we need to archive these configuration files.
-We will store the files in the directory for example.
-To run all these files, add the release_directory parameter in you main configuration file:
+We will store the files in the directory *release_config* for example.
+To run all these files, add the **release_directory** parameter in your main configuration file:
 
 ```yml
     release_directory: ./release_config
 ```
 
-To back up the release files after the execution of the production configuration, add the clear_release_directory parameter in you production configuration file.
+To back up the release files after the execution of the production configuration, add the **clear_release_directory** parameter in you production configuration file.
 
 ```yml
   clear_release_directory: True
@@ -357,6 +357,14 @@ To back up the release files after the execution of the production configuration
 
 ## Maintainer
 
-This module is maintained by [Hodei](https://www.hodei.net).
+This software was created by [Hodei](https://www.hodei.net) formerly Teclib' ERP, 
+maintenance is now being handled by [Scalizer](https://www.scalizer.fr).
 
-![](./logo.jpg)
+
+<div style="text-align: center;">
+
+[![Scaliser](./logo_scalizer.png)](https://www.scalizer.fr)
+
+[![Hooei](./logo_hodei.jpg)](https://www.hodei.net)
+
+</div>
