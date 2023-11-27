@@ -13,6 +13,7 @@ import hiyapyco
 from .apps import connection
 from .apps import account
 from .apps import config
+from .apps import system_parameter
 from .apps import datas
 from .apps import defaults
 from .apps import imports
@@ -144,7 +145,7 @@ class Configurator:
         return files
 
     def backup_release_directory(self):
-        if os.path.isdir(self.release_directory):
+        if self.clear_release_directory and os.path.isdir(self.release_directory):
             bak_dir = os.path.join(self.release_directory, 'bak')
             if not os.path.isdir(bak_dir):
                 os.mkdir(bak_dir)
@@ -205,6 +206,7 @@ class Configurator:
         modules_manager.install_config_modules()
         datas_manager.execute_update_config_datas()
         config.OdooConfig(self)
+        system_parameter.OdooSystemParameter(self)
         roles.OdooRoles(self)
         defaults.OdooDefaults(self)
         users.OdooUsers(self)

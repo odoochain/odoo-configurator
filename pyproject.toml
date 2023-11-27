@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "odoo-configurator"
-version = "3.2.0"
+version = "3.3.0"
 description = "Configure and update Odoo database with YAML files"
 readme = "README.md"
 authors = [{ name = "Michel Perrocheau", email = "myrrkel@gmail.com" },
@@ -32,7 +32,7 @@ requires-python = ">=3.9"
 dev = ["twine", "bumpver", "pip-tools", "pytest", "check-manifest"]
 
 [project.urls]
-Homepage = "https://github.com/TeclibERP/odoo-configurator"
+Homepage = "https://github.com/ScalizerOrg/odoo-configurator"
 
 [project.scripts]
 odoo-configurator = "odoo_configurator.__main__:main"

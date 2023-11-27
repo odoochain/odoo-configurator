@@ -120,6 +120,18 @@ For a specific company:
         chart_template_id: get_ref("l10n_fr.l10n_fr_pcg_chart_template")
 ```
 
+## Set system parameters
+
+to set the value of a system parameter (ir.config_parameter)
+```yml
+Company System Parameters:
+  system_parameter:
+    Mail Default From Filter:
+      key: mail.default.from_filter
+      value: my-company.com
+  ```
+
+
 ## Create or update records
     
 If the record with the xml id provided with force_id don't exist, the record will be created.    
