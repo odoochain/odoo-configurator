@@ -11,6 +11,7 @@ import unidecode
 import re
 from pprint import pformat
 
+
 class ImportManager:
 
     def __init__(self, configurator):

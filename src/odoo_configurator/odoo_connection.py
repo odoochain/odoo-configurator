@@ -21,6 +21,7 @@ METHODE_MAPPING = {
     15: [('get_object_reference', 'check_object_reference')]
 }
 
+
 class OdooConnection:
     _context = {'lang': 'fr_FR', 'noupdate': True}
     _cache = {}
