@@ -120,6 +120,18 @@ For a specific company:
         chart_template_id: get_ref("l10n_fr.l10n_fr_pcg_chart_template")
 ```
 
+## Set system parameters
+
+to set the value of a system parameter (ir.config_parameter)
+```yml
+Company System Parameters:
+  system_parameter:
+    Mail Default From Filter:
+      key: mail.default.from_filter
+      value: my-company.com
+  ```
+
+
 ## Create or update records
     
 If the record with the xml id provided with force_id don't exist, the record will be created.    
@@ -327,10 +339,26 @@ Actions:
     import_configurator_model_file:
         Portal Form:
             model: res.partner
-            domain: [('is_company', '=', True)]
+            domain: [['is_company', '=', True]]  # Don't use parenthesis in the domain
             order_by: name, ref
             force_export_fields: ["email_formatted", "country_code"]
             excluded_fields: ["email", "country_id"]
+```
+
+## Release Configuration
+
+Some configurations need to be executed on every platform until the production release. After that we need to archive these configuration files.
+We will store the files in the directory *release_config* for example.
+To run all these files, add the **release_directory** parameter in your main configuration file:
+
+```yml
+    release_directory: ./release_config
+```
+
+To back up the release files after the execution of the production configuration, add the **clear_release_directory** parameter in you production configuration file.
+
+```yml
+  clear_release_directory: True
 ```
 
 ## Contributors
@@ -341,6 +369,14 @@ Actions:
 
 ## Maintainer
 
-This module is maintained by [Hodei](https://www.hodei.net).
+This software was created by [Hodei](https://www.hodei.net) formerly Teclib' ERP, 
+maintenance is now being handled by [Scalizer](https://www.scalizer.fr).
 
-![](./logo.jpg)
+
+<div style="text-align: center;">
+
+[![Scaliser](./logo_scalizer.png)](https://www.scalizer.fr)
+
+[![Hooei](./logo_hodei.jpg)](https://www.hodei.net)
+
+</div>
