@@ -34,6 +34,11 @@ from .password_manager import PasswordManager
 logger = get_logger(__name__)
 
 
+def get_config_from_files(files):
+    return hiyapyco.load(files, method=hiyapyco.METHOD_MERGE, interpolate=True,
+                         failonmissingfiles=True, loglevel='INFO')
+
+
 class Configurator:
     mode = ["config"]
     debug = False
@@ -44,6 +49,7 @@ class Configurator:
     xmlid_cache = dict()
     release_directory = ''
     clear_release_directory = False
+    paths = list()
 
     def __init__(self, paths=False, install=False, update=False, debug=False, debug_xmlrpc=False, keepass='',
                  config_dict=None):
@@ -95,30 +101,32 @@ class Configurator:
     def parse_config(self):
         count_inherit = 0
         count_pre_update = 0
+        config_files = []
         pre_update_config = None
-        parsed_config = hiyapyco.load(self.paths, method=hiyapyco.METHOD_MERGE, interpolate=True,
-                                      failonmissingfiles=True,
-                                      loglevel='INFO')
+        parsed_config = get_config_from_files(self.paths)
 
         while len(parsed_config.get("pre_update", [])) != count_pre_update:
             count_pre_update = len(parsed_config.get("pre_update", []))
             config_files = self.get_files_path(parsed_config['pre_update'])
             logger.info("Pre Update Loading %s" % (",".join(config_files)))
-            pre_update_config = hiyapyco.load(config_files, method=hiyapyco.METHOD_MERGE, interpolate=True,
-                                              failonmissingfiles=True, loglevel='INFO')
+            pre_update_config = get_config_from_files(config_files)
             pre_update_config['auth'] = parsed_config['auth']
 
         while len(parsed_config.get("inherits", [])) != count_inherit:
             count_inherit = len(parsed_config.get("inherits", []))
-            config_files = self.paths + self.get_files_path(parsed_config['inherits'])
-            if parsed_config.get('release_directory'):
-                self.release_directory = parsed_config['release_directory']
-                config_files += self.get_release_files()
-            if parsed_config.get('clear_release_directory'):
-                self.clear_release_directory = parsed_config.get('clear_release_directory')
-            logger.info("Configuration Loading %s" % (",".join(config_files)))
-            parsed_config = hiyapyco.load(config_files, method=hiyapyco.METHOD_MERGE, interpolate=True,
-                                          failonmissingfiles=True, loglevel='INFO')
+            inherit_files = self.get_files_path(parsed_config['inherits'])
+            config_files = self.paths + inherit_files
+            parsed_config = get_config_from_files(config_files)
+        logger.info("Configuration Loading %s" % (",".join(config_files)))
+
+        if parsed_config.get('release_directory'):
+            self.release_directory = parsed_config['release_directory']
+            release_files = self.get_release_files()
+            config_files += release_files
+            logger.info("Release Configuration Loading %s" % (",".join(release_files)))
+            parsed_config = get_config_from_files(config_files)
+        if parsed_config.get('clear_release_directory'):
+            self.clear_release_directory = parsed_config.get('clear_release_directory')
 
         parsed_config['scripts'] = []
         count_script = 0
@@ -127,8 +135,7 @@ class Configurator:
             script_files = self.get_files_path(parsed_config['script_files'])
 
             for script_file in script_files:
-                parsed_script = hiyapyco.load(script_file, method=hiyapyco.METHOD_MERGE, interpolate=True,
-                                              failonmissingfiles=True, loglevel='INFO')
+                parsed_script = get_config_from_files(script_files)
                 if parsed_script.get('title'):
                     parsed_script['title'] = '%s : %s' % (os.path.basename(script_file),
                                                           parsed_script.get('title'))
