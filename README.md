@@ -283,14 +283,40 @@ To avoid Mattermost notification, add in main yaml file:
 
 Keepass is a tool to store and protect passwords.
 
-Available functions to use stored values in Configurator:
+Available functions to use stored values in Keepass:
 ```yml
-    get_keepass_password('path/passwords.kdbx', 'Folder Name', 'Key Name')
-    get_keepass_user('path/passwords.kdbx', 'Folder Name', 'Key Name')
-    get_keepass_url('path/passwords.kdbx', 'Folder Name', 'Key Name')
+    password: get_keepass_password('path/passwords.kdbx', 'Folder Name', 'Key Name')
+    user: get_keepass_user('path/passwords.kdbx', 'Folder Name', 'Key Name')
+    url: get_keepass_url('path/passwords.kdbx', 'Folder Name', 'Key Name')
 ```
-Provide Keepass password with this parameter in command line: --keepass='mdp***'
 
+To avoid to repeat path and group in Keepass functions, you can set `keepass_path` and `keepass_group`
+```yml
+keepass_path: path/passwords.kdbx
+keepass_group: Folder Name
+
+my_secret: get_keepass_password('Key Name')
+```
+
+3 ways to pass the Keepass password to odoo-configurator :
+ - Provide Keepass password with the keepass parameter in command line: `--keepass='mdp***'`
+ - Set the `KEEPASS_PASSWORD` environment variable
+ - Manually. If it's required odoo-configurator will ask to type the password with the prompt `Keepass Password:`
+
+ In PyCharm, to type the Keepass password, please check the `Emulate terminal in output console` option in your run/debug configuration.
+
+## Bitwarden
+
+Bitwarden is a tool to store and protect passwords. Make sure Bitwarden CLI is installed.
+
+Credentials to connect to Bitwarden Vault can be set by environment variables, please report to the [s6r-bitwarden-cli documentation](https://pypi.org/project/s6r-bitwarden-cli)
+
+An over option is to set the value of `bitwarden_username` and  `bitwarden_password` in yml file. Obviously, do not save password directly in your yml file, use Keepass functions for example.
+
+```yml
+bitwarden_username: get_keepass_user('Bitwarden')
+bitwarden_password: get_keepass_password('Bitwarden')
+```
 
 ## Standard CSV Import
 

@@ -64,6 +64,6 @@ urllib3==2.0.3
     # via
     #   odoo-configurator (pyproject.toml)
     #   requests
-
+s6r_bitwarden_cli==1.0.2
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

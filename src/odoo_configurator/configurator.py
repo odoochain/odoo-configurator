@@ -29,7 +29,8 @@ from .apps import import_configurator
 from .import_manager import ImportManager
 from .logging import get_logger
 from .odoo_connection import OdooConnection
-from .password_manager import PasswordManager
+from .keepass import KeepassCli
+from .bitwarden import Bitwarden
 
 logger = get_logger(__name__)
 
@@ -44,6 +45,8 @@ class Configurator:
     debug = False
     connection = None
     import_manager = None
+    keepass_cli = None
+    bitwarden_cli = None
     config = dict()
     pre_update_config = dict()
     xmlid_cache = dict()
@@ -53,7 +56,6 @@ class Configurator:
 
     def __init__(self, paths=False, install=False, update=False, debug=False, debug_xmlrpc=False, keepass='',
                  config_dict=None):
-        self.password_manager = PasswordManager(keepass or os.environ.get('KEEPASS_PASSWORD', ''))
         self.configurator_dir = os.path.dirname(sys.argv[0])
         if install:
             self.mode.append('install')
@@ -67,11 +69,14 @@ class Configurator:
         else:
             self.config = config_dict
         self.log_history = []
-        if debug:
-            logger.setLevel(logging.DEBUG)
-        else:
-            logger.setLevel(logging.INFO)
+        logger.setLevel(logging.DEBUG if debug else logging.INFO)
 
+        self.keepass_cli = KeepassCli(self, keepass_password=keepass)
+        self.bitwarden_cli = Bitwarden(self)
+        self.prepare_odoo_connection()
+        self.import_manager = ImportManager(self)
+
+    def prepare_odoo_connection(self):
         odoo_params = self.get_odoo_auth_params()
         connection.OdooConnection(self).pre_config(odoo_params)
         self.connection = OdooConnection(
@@ -85,7 +90,6 @@ class Configurator:
             createdb=odoo_params.get('create_db'),
             debug_xmlrpc=self.debug_xmlrpc,
         )
-        self.import_manager = ImportManager(self)
 
     def get_odoo_auth_params(self):
         if self.config.get('auth') and self.config.get('auth').get('odoo'):
