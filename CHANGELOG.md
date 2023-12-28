@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
  - Allow to retrieve passwords from Bitwarden
+ - Allow to type Keepass master password if not provided by env variables or --keepass parameter
  - Allow to get Bitwarden credentials from Keepass. Refactor Keepass functions.
 
 ## [3.3.0] - 2023-11-27
