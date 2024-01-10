@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.1] - 2024-01-10
+
+### Changed
+
+ - Update s6r_bitwarden_cli to 1.0.3
+
 ## [3.4.0] - 2023-12-27
 
 ### Added
