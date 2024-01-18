@@ -77,7 +77,7 @@ class OdooDatas(base.OdooModule):
             if 'install' not in self._mode and datas[data].get('on_install_only', False):
                 return
             model = datas[data].get('model') or model
-            key = datas[data].get('key', False)
+            field_key = datas[data].get('key', False)
             force_id = datas[data].get('force_id', False)
             delete_all = datas[data].get('delete_all', False)
             delete_domain = datas[data].get('delete_domain', False)
@@ -144,9 +144,9 @@ class OdooDatas(base.OdooModule):
                 self._connection.set_active(True, model, literal_eval(activate), search_value_xml_id)
                 continue
 
-            if key:
+            if field_key and not force_id:
                 object_ids = self.execute_odoo(model, 'search',
-                                               [[(key, '=', values[key])], 0, 0, "id", False],
+                                               [[(field_key, '=', values[field_key])], 0, 0, "id", False],
                                                {'context': config_context})
             elif force_id:
                 if load:
@@ -160,7 +160,7 @@ class OdooDatas(base.OdooModule):
                 self.exec_function(function, datas[data], config_context, no_raise)
                 continue
             else:
-                self.logger.error("key=%s", key)
+                self.logger.error("key=%s", field_key)
                 raise
 
             # prepare many2many list of xmlid
@@ -170,7 +170,6 @@ class OdooDatas(base.OdooModule):
                         values[key] = ','.join(values[key])
 
             if load:
-
                 fields, rec_values = self.save_values(model, values, config_context, force_id, object_ids,
                                                       load_batch=load)
                 load_fields = list(set(load_fields + fields))

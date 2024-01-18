@@ -111,9 +111,7 @@ class OdooModule:
                                                    {'context': self._context})
                     self.logger.debug("%s %s %s", model, domain, object_ids)
                     if object_ids:
-                        config[key] = object_ids[0]
-                        if values:
-                            self.execute_odoo(model, 'write', [config[key], dict(values)], {'context': self._context})
+                        config[key]['force_id'] = object_ids[0]
                     else:
                         config[key] = self.execute_odoo(model, 'create', [dict(values)], {'context': self._context})
                 elif isinstance(config[key], (dict, OrderedDict, list)):
