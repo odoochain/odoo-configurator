@@ -49,6 +49,9 @@ class OdooConfig(base.OdooModule):
             if isinstance(config[key], str) and config[key].startswith('get_'):
                 config[key] = self.safe_eval(config[key])
         domain = []
+        if 'company_id' in config:
+            domain.append(('company_id', '=', config['company_id']))
+
         config_ids = self.execute_odoo('res.config.settings', 'search', [domain], {'context': self._context})
         if config_ids:
             config_id = config_ids[-1]
