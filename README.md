@@ -112,13 +112,16 @@ to set the value of a setting (res.config.settings)
         group_use_lead: True
 ```
 
-For a specific company:
+For a specific company configuration use the `company_id` parameter:
 ```yml
     settings main_company:
       config:
         company_id: get_ref("base.main_company")
         chart_template_id: get_ref("l10n_fr.l10n_fr_pcg_chart_template")
+        context: { 'lang': 'fr_FR' }
 ```
+
+A context can be passed to the config command.
 
 ## Set system parameters
 
@@ -184,6 +187,37 @@ To update values of multiple records, set a domain with "update_domain" :
         name: Example
 ```
 
+## Available functions
+
+All functions in OdooConnection starting by `get_` are callable from yml files.
+ - get_ref
+ - get_image_url
+ - get_image_local
+ - get_local_file
+ - get_country
+ - get_menu
+ - get_search_id
+ - get_xml_id_from_id
+ - get_record
+
+These functions can be nested by using the o object:
+
+```yml
+Ir model Data Config:
+  datas:
+    Add employee document xmlid:
+      model: ir.model.data
+      force_id: template_01_employee_01
+      values:
+        model: paper.paper
+        module: external_config
+        name: template_01_employee_01
+        res_id: get_search_id('paper.paper', [
+                ('template_id', '=', o.get_ref('external_config.template_01')),
+                ('res_id', '=', o.get_ref('external_config.employee_01'))
+                ], 'desc')
+```
+
 ## Server Actions and Functions
 
 To call a model function:
@@ -198,7 +232,7 @@ To call a model function:
           kw: {'extra_param1': get_ref('external_config.extra_param1')}  
 ```
 
-To call an action server:
+To call an action server (`ir.actions.server`):
 ```yml
     002 Call Action Server:
       datas:
