@@ -4,6 +4,9 @@
 
 import logging
 from collections import OrderedDict
+from ..odoo_connection import OdooConnection
+from ..keepass import KeepassCli
+from ..bitwarden import Bitwarden
 
 from ..logging import get_logger
 
@@ -13,7 +16,8 @@ class OdooModule:
     def __init__(self, configurator):
         self._configurator = configurator
         self._connection = configurator.connection
-        self._password_manager = configurator.password_manager
+        self._keepass_cli = configurator.keepass_cli
+        self._bitwarden_cli = configurator.bitwarden_cli
         self._import_manager = configurator.import_manager
         self._datas = configurator.config
         self._pre_datas = configurator.pre_update_config
@@ -26,7 +30,7 @@ class OdooModule:
             self.get_xml_id_from_id = self._connection.get_xml_id_from_id
             self.get_record = self._connection.get_record
             self.default_get = self._connection.default_get
-        self.logger = get_logger(self._name.ljust(15))
+        self.logger = get_logger(self._name.ljust(20))
         if self._debug:
             self.logger.setLevel(logging.DEBUG)
         else:
@@ -38,7 +42,10 @@ class OdooModule:
         raise NotImplementedError
 
     def _published_objects(self):
-        return self._connection, self._password_manager
+        return self._connection, self._keepass_cli, self._bitwarden_cli
+
+    def _published_class(self):
+        return OdooConnection, KeepassCli, Bitwarden
 
     def install_mode(self):
         if 'install' in self._mode:
@@ -47,8 +54,8 @@ class OdooModule:
 
     def get_mapping_method(self):
         res = {}
-        for o in self._published_objects():
-            res[o.__class__] = [method for method in dir(o.__class__) if method.startswith('_') is False]
+        for o in self._published_class():
+            res[o.__name__] = [method for method in dir(o) if method.startswith('_') is False]
         return res
 
     def deep_convert_dict(self, layer):
@@ -66,7 +73,7 @@ class OdooModule:
         for object_class, methods in self.get_mapping_method().items():
             if name.split('(')[0] in methods:
                 for o in self._published_objects():
-                    if o.__class__ == object_class:
+                    if o.__class__.__name__ == object_class:
                         self.logger.debug("o.%s", name)
                         try:
                             return eval("o.%s" % name)
@@ -104,9 +111,7 @@ class OdooModule:
                                                    {'context': self._context})
                     self.logger.debug("%s %s %s", model, domain, object_ids)
                     if object_ids:
-                        config[key] = object_ids[0]
-                        if values:
-                            self.execute_odoo(model, 'write', [config[key], dict(values)], {'context': self._context})
+                        config[key]['force_id'] = object_ids[0]
                     else:
                         config[key] = self.execute_odoo(model, 'create', [dict(values)], {'context': self._context})
                 elif isinstance(config[key], (dict, OrderedDict, list)):
