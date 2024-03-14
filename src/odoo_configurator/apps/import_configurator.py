@@ -96,7 +96,7 @@ class ImportConfigurator(base.OdooModule):
 
             xmlid = self.get_xmlid(model, record.get('id'))
             if not xmlid:
-                xmlid = self.compute_xml_id(record)
+                xmlid = self.compute_xml_id(record, model)
             res += '\n%s%s:' % (" " * 4 * 2, rec_name)
             res += '\n%s%s: %s' % (" " * 4 * 3, 'model', model)
             res += '\n%s%s: %s' % (" " * 4 * 3, 'force_id', xmlid)
@@ -233,13 +233,13 @@ class ImportConfigurator(base.OdooModule):
         self.rec_to_xmlid_cache[(model, res_id)] = xmlid
         return xmlid
 
-    def compute_xml_id(self, record, retry=0):
-        xml_id = 'external_config.%s_%s' % (record['model'].replace('.', '_'), str(record['id']+retry).zfill(5))
+    def compute_xml_id(self, record, model, retry=0):
+        xml_id = 'external_config.%s_%s' % (model.replace('.', '_'), str(record['id']+retry).zfill(5))
         if not self._connection.get_id_from_xml_id(xml_id, no_raise=True):
             return xml_id
         else:
             retry += 1
-            return self.compute_xml_id(record, retry)
+            return self.compute_xml_id(record, model, retry)
 
     def apply(self):
         super(ImportConfigurator, self).apply()
