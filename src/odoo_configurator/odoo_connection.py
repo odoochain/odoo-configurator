@@ -22,6 +22,17 @@ METHODE_MAPPING = {
 }
 
 
+def get_file_full_path(path):
+    param_path = path
+    if not os.path.isfile(path):
+        path = os.path.join(os.path.dirname(sys.argv[1]), param_path)
+    if not os.path.isfile(path):
+        path = os.path.join(os.path.dirname(sys.argv[1]), 'datas', param_path)
+    if not os.path.isfile(path):
+        raise FileNotFoundError('%s not found!' % param_path)
+    return path
+
+
 class OdooConnection:
     _context = {'lang': 'fr_FR', 'noupdate': True}
     _cache = {}
@@ -149,8 +160,7 @@ class OdooConnection:
     def get_image_local(self, path):
         if 'path' not in self._cache:
             self._cache['path'] = {}
-        if not os.path.isfile(path):
-            path = os.path.join(os.path.dirname(sys.argv[1]), 'datas', path)
+        path = get_file_full_path(path)
 
         if path not in self._cache['path']:
 
@@ -160,6 +170,7 @@ class OdooConnection:
 
     @staticmethod
     def get_local_file(path, encode=False):
+        path = get_file_full_path(path)
         if encode:
             with open(path, "rb") as f:
                 res = f.read()
