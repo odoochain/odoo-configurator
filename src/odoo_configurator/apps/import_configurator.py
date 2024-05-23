@@ -144,6 +144,7 @@ class ImportConfigurator(base.OdooModule):
         field_name = field.get('name')
         model = field.get('model')
         field_type = field.get('ttype')
+        name = ''
         if field_type in ['one2many']:
             name = ''
         elif field_type in ['binary']:
@@ -159,15 +160,13 @@ class ImportConfigurator(base.OdooModule):
             files.append((file_name, binary_data))
             name = "\n%s%s: %s" % (" " * 4 * 4, field_name, 'get_image_local("%s")' % file_name)
         elif field_type == 'many2many':
-            # Todo : import many2many values
-            # rec_values = ''
-            # xmlid_list = sort_xml_ids([val.get_xml_id()[val.id] for val in record[field_name]])
-            # for xmlid in xmlid_list:
-            #     if xmlid:
-            #         rec_values += '\n%s- %s' % (" " * (2 + 4 * 4), xmlid)
-            # if rec_values:
-            #     name = '\n%s%s/id: %s' % (" " * 4 * 4, field_name, rec_values)
-            name = ''
+            rec_values = ''
+            xmlid_list = [self.get_xmlid(field['relation'], val) for val in record[field_name]]
+            for xmlid in xmlid_list:
+                if xmlid:
+                    rec_values += '\n%s- %s' % (" " * (2 + 4 * 4), xmlid)
+            if rec_values:
+                name = '\n%s%s/id: %s' % (" " * 4 * 4, field_name, rec_values)
 
         elif field_type in ['many2one']:
             if record[field_name]:
