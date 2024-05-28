@@ -45,24 +45,25 @@ class OdooConfig(base.OdooModule):
         return values
 
     def execute_config(self, config):
+        context = self._context
         for key in config:
             if isinstance(config[key], str) and config[key].startswith('get_'):
                 config[key] = self.safe_eval(config[key])
         domain = []
 
         if 'context' in config:
-            context = self._context
             context.update(config.pop('context'))
 
         if 'company_id' in config:
             domain.append(('company_id', '=', config['company_id']))
+            context['allowed_company_ids'] = [config['company_id']]
 
-        config_ids = self.execute_odoo('res.config.settings', 'search', [domain], {'context': self._context})
+        config_ids = self.execute_odoo('res.config.settings', 'search', [domain], {'context': context})
         if config_ids:
             config_id = config_ids[-1]
         else:
             config_id = self.execute_odoo('res.config.settings', 'create', [self.deep_convert_dict(config)],
-                                          {'context': self._context})
+                                          {'context': context})
         self.execute_odoo('res.config.settings', 'write', [config_id, self.deep_convert_dict(config)],
-                          {'context': self._context})
-        self.execute_odoo('res.config.settings', 'execute', [config_id], {'context': self._context})
+                          {'context': context})
+        self.execute_odoo('res.config.settings', 'execute', [config_id], {'context': context})

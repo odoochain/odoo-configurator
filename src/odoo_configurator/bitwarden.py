@@ -39,3 +39,19 @@ class Bitwarden:
             logger.error(err)
             pass
             return default
+
+    def get_bitwarden_username(self, collection_name, name):
+        try:
+            return self.bw_cli.get_item_username(name, collection_name=collection_name)
+        except Exception as err:
+            logger.error(err)
+            pass
+            return ''
+
+    def get_bitwarden_field(self, collection_name, item_name, field_name):
+        try:
+            return self.bw_cli.get_item_field(item_name, field_name, collection_name=collection_name)
+        except Exception as err:
+            logger.error(err)
+            pass
+            return ''

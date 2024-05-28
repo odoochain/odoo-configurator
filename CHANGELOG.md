@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.8] - 2024-05-23
+
+### Added
+
+ - Allows to import many2many field values with xml_id
+
+### Fixed
+
+ - Improve get_local_file function to avoid to set working directory environment variable 
+
+## [3.4.7] - 2024-05-02
+
+### Added
+
+ - Add get_bitwarden_username and get_bitwarden_field functions
+
+
+## [3.4.6] - 2024-04-12
+
+### Fixed
+
+ - add allowed_company_ids in context to properly config accounting fields such chart_template_id on res.config.setting
+ - update_domain function can be used with several conditions in domain
+
+
+## [3.4.5] - 2024-03-14
+
+### Added
+
+ - Compute missing xmlid on export
+
 ## [3.4.4] - 2024-02-07
 
 ### Added

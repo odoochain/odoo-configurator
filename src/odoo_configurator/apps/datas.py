@@ -129,7 +129,9 @@ class OdooDatas(base.OdooModule):
                 domain = self.eval_param_value(update_domain)
                 if search_value_xml_id:
                     object_id = self._connection.get_id_from_xml_id(search_value_xml_id)
-                    domain = [(domain[0][0], domain[0][1], object_id)]
+                    for condition in domain:
+                        if condition[2] == 'search_value_xml_id':
+                            condition[2] = object_id
                 object_ids = self.execute_odoo(model, 'search', [domain, 0, 0, "id", False],
                                                {'context': config_context})
                 self.logger.debug("Update Domain %s %s" % (len(object_ids), model))
