@@ -166,11 +166,20 @@ class OdooDatas(base.OdooModule):
                 raise
 
             # prepare many2many list of xmlid
-            for key in values.keys():
+            keys = list(values.keys())
+            for key in keys:
                 if isinstance(values[key], list) and '/id' in key:
                     if values[key] and isinstance(values[key][0], str) and '.' in values[key][0]:
-                        values[key] = ','.join(values[key])
+                        if not force_id or isinstance(force_id, int):
+                            field_name = key.replace('/id', '')
+                            values[field_name] = [self._connection.get_ref(v) for v in values[key]]
+                            values.pop(key)
+                        else:
+                            values[key] = ','.join(values[key])
 
+            load = datas[data].get('load', False)
+            load_fields = []
+            raw_load_values = []
             if load:
                 fields, rec_values = self.save_values(model, values, config_context, force_id, object_ids,
                                                       load_batch=load)
