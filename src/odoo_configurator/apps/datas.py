@@ -176,6 +176,12 @@ class OdooDatas(base.OdooModule):
                             values.pop(key)
                         else:
                             values[key] = ','.join(values[key])
+                elif isinstance(values[key], str) and '/id' in key:
+                    if values[key] and '.' in values[key]:
+                        if not force_id or isinstance(force_id, int):
+                            field_name = key.replace('/id', '')
+                            values[field_name] = self._connection.get_ref(values[key])
+                            values.pop(key)
 
             load = datas[data].get('load', False)
             load_fields = []
