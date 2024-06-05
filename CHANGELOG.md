@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed 
 
  - Improve update of many2many list of xmlid when the record has no xml_id
+ - Improve update of Many2one field with a xmlid when the record has no xml_id
 
 ## [3.4.8] - 2024-05-23
 
