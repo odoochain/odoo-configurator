@@ -151,8 +151,11 @@ class Configurator:
 
     def get_release_files(self):
         files = []
-        if os.path.isdir(self.release_directory):
-            files = glob.glob(os.path.join(self.release_directory, '*.yml'))
+        release_dir = self.release_directory
+        if not os.path.isdir(release_dir):
+            release_dir = os.path.join(os.path.dirname(sys.argv[1]), release_dir)
+        if os.path.isdir(release_dir):
+            files = glob.glob(os.path.join(release_dir, '*.yml'))
         return files
 
     def backup_release_directory(self):
