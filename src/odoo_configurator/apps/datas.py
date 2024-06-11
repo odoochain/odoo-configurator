@@ -109,8 +109,7 @@ class OdooDatas(base.OdooModule):
                     domain = self.eval_param_value(delete_domain)
                 else:
                     domain = []
-                object_ids = self.execute_odoo(model, 'search', [domain, 0, 0, "id", False],
-                                               {'context': config_context})
+                object_ids = self.search(model, domain, order='id', context=config_context)
                 for object_id in object_ids:
                     self.execute_odoo(model, 'unlink', [object_id])
                 continue
@@ -132,8 +131,7 @@ class OdooDatas(base.OdooModule):
                     for condition in domain:
                         if condition[2] == 'search_value_xml_id':
                             condition[2] = object_id
-                object_ids = self.execute_odoo(model, 'search', [domain, 0, 0, "id", False],
-                                               {'context': config_context})
+                object_ids = self.search(model, domain, order='id', context=config_context)
                 self.logger.debug("Update Domain %s %s" % (len(object_ids), model))
                 self.execute_odoo(model, 'write', [object_ids, dict(values)], {'context': config_context})
                 continue
@@ -147,9 +145,8 @@ class OdooDatas(base.OdooModule):
                 continue
 
             if field_key and not force_id:
-                object_ids = self.execute_odoo(model, 'search',
-                                               [[(field_key, '=', values[field_key])], 0, 0, "id", False],
-                                               {'context': config_context})
+                object_ids = self.search(model, [(field_key, '=', values[field_key])],
+                                         order='id', context=config_context)
             elif force_id:
                 if load:
                     values['id'] = force_id
@@ -226,11 +223,10 @@ class OdooDatas(base.OdooModule):
         for message in res['messages']:
             self.logger.error("%s : %s" % (message['record'], message['message']))
 
-    def set_force_id(self, model, values, config_context, force_id=False):
+    def set_force_id(self, model, values, config_context, force_id=''):
         if isinstance(force_id, int):
             values['id'] = force_id
-            object_ids = self.execute_odoo(model, 'search', [[('id', '=', force_id)], 0, 0, "id", False],
-                                           {'context': config_context})
+            object_ids = self.search(model, [('id', '=', force_id)], order='id', context=config_context)
         else:
             if '.' not in force_id:
                 force_id = "external_config." + force_id
@@ -238,9 +234,8 @@ class OdooDatas(base.OdooModule):
             if force_id in self._configurator.xmlid_cache:
                 return values, self._configurator.xmlid_cache[force_id]
             module, name = force_id.split('.')
-            if self.execute_odoo('ir.model.data', 'search',
-                                 [[('module', '=', module), ('name', '=', name)], 0, 0, "id", False],
-                                 {'context': config_context}):
+            if self.search('ir.model.data', [('module', '=', module), ('name', '=', name)],
+                           order='id', context=config_context):
                 object_ids = self._connection.get_ref(force_id)
             else:
                 object_ids = []

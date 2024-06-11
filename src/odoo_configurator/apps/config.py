@@ -58,7 +58,7 @@ class OdooConfig(base.OdooModule):
             domain.append(('company_id', '=', config['company_id']))
             context['allowed_company_ids'] = [config['company_id']]
 
-        config_ids = self.execute_odoo('res.config.settings', 'search', [domain], {'context': context})
+        config_ids = self.search('res.config.settings', domain, context=context)
         if config_ids:
             config_id = config_ids[-1]
         else:
