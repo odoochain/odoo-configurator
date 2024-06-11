@@ -63,13 +63,13 @@ class ImportConfigurator(base.OdooModule):
         self.display_name_prefix_fields = display_name_prefix_fields
         if not model:
             return ''
-        records = self.search(model, domain, order=order_by)
+        records = self.search_read(model, domain, order=order_by)
         if not records:
             return ''
 
         res = ''
         prev_record_group = ''
-        model_id = self.search('ir.model', [('model', '=', model)])[0]
+        model_id = self.search_read('ir.model', [('model', '=', model)])[0]
         self.load_model_fields(model)
         for i, record in enumerate(records):
             self.logger.info("Export %s : %s/%s", model, i, len(records))
@@ -122,7 +122,7 @@ class ImportConfigurator(base.OdooModule):
 
     def load_model_fields(self, model):
         self.model_fields = dict()
-        fields = self.search('ir.model.fields', [('model', '=', model)])
+        fields = self.search_read('ir.model.fields', [('model', '=', model)])
         for field in fields:
             self.model_fields[field['name']] = {'field': field,
                                                 'default': self.default_get(model, field['name'])}
@@ -217,7 +217,7 @@ class ImportConfigurator(base.OdooModule):
         for field_name in self.display_name_prefix_fields:
             field_id = self.model_fields[field_name]['field']
             if field_id['ttype'] == 'many2one' and record[field_name]:
-                related_record = self.search(field_id['relation'], [('id', '=', record[field_name][0])])
+                related_record = self.search_read(field_id['relation'], [('id', '=', record[field_name][0])])
                 prefix = related_record and related_record[0]['name']
             else:
                 prefix = record[field_name]

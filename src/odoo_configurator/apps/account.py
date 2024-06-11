@@ -23,17 +23,14 @@ class OdooAccount(base.OdooModule):
                 'street2': banks.get(bank).get("street2", ""),
                 'city': banks.get(bank).get("city", ""),
                 'zip': banks.get(bank).get("zip", ""),
-                'country': self.execute_odoo('res.country', 'search',
-                                             [[('code', '=', banks.get(bank)["country_code"])], 0, 0, "id", False],
-                                             {'context': self._context})[0],
+                'country': self.search('res.country', [('code', '=', banks.get(bank)["country_code"])],
+                                       order='id', context=self._context)[0],
                 'phone': banks.get(bank).get("phone", ""),
                 'email': banks.get(bank).get("email", ""),
             }
-            bank_id = self.execute_odoo('res.bank', 'search', [[('bic', '=', vals["bic"])], 0, 0, "id", False],
-                                        {'context': self._context})
+            bank_id = self.search('res.bank', [('bic', '=', vals["bic"])], order='id', context=self._context)
             if not bank_id:
-                bank_id = self.execute_odoo('res.bank', 'search', [[('name', '=', vals["name"])], 0, 0, "id", False],
-                                            {'context': self._context})
+                bank_id = self.search('res.bank', [('name', '=', vals["name"])], order='id', context=self._context)
                 if not bank_id:
                     bank_id = self.execute_odoo('res.bank', 'create', [vals], {'context': self._context})
                 else:
@@ -49,9 +46,8 @@ class OdooAccount(base.OdooModule):
                 'partner_id': 1,
                 'bank_id': bank_id,
             }
-            partner_bank_id = self.execute_odoo('res.partner.bank', 'search',
-                                                [[('acc_number', '=', vals["acc_number"])], 0, 0, "id", False],
-                                                {'context': self._context})
+            partner_bank_id = self.search('res.partner.bank', [('acc_number', '=', vals["acc_number"])],
+                                          order='id', context=self._context)
             if not partner_bank_id:
                 partner_bank_id = self.execute_odoo('res.partner.bank', 'create', [vals], {'context': self._context})
             else:
@@ -59,9 +55,8 @@ class OdooAccount(base.OdooModule):
                 partner_bank_id = partner_bank_id[0]
 
             # Check default journal exist
-            default_journal_id = self.execute_odoo('account.journal', 'search',
-                                                   [[('name', '=', 'Banque')], 0, 0, "id", False],
-                                                   {'context': self._context})
+            default_journal_id = self.search('account.journal', [('name', '=', 'Banque')],
+                                             order='id', context=self._context)
             journal_id = False
             if first:
                 first = False
@@ -76,9 +71,8 @@ class OdooAccount(base.OdooModule):
                 'type': 'bank',
             }
             if not journal_id:
-                journal_id = self.execute_odoo('account.journal', 'search',
-                                               [[('bank_account_id', '=', vals['bank_account_id'])], 0, 0, "id", False],
-                                               {'context': self._context})
+                journal_id = self.search('account.journal', [('bank_account_id', '=', vals['bank_account_id'])],
+                                         order='id', context=self._context)
             if not len(journal_id):
                 journal_id = self.execute_odoo('account.journal', 'create', [vals], {'context': self._context})
             else:

@@ -142,6 +142,12 @@ class OdooConnection:
                     self.logger.error(e)
                 raise e
 
+    def search(self, model, domain, offset=0, limit=None, order=None, count=None, context=None):
+        args = [domain, offset, limit, order]
+        if self._version <= 16:
+            args.append(count)
+        return self.execute_odoo(model, 'search', args, {'context': context})
+
     def get_ref(self, external_id):
         res = self.execute_odoo('ir.model.data',
                                 self._get_xmlrpc_method('get_object_reference'),
@@ -181,16 +187,15 @@ class OdooConnection:
         return res
 
     def get_country(self, code):
-        return self.execute_odoo('res.country', 'search', [[('code', '=', code)], 0, 1, "id", False],
-                                 {'context': self._context})[0]
+        return self.search('res.country', [('code', '=', code)],
+                           limit=1, order='id', context=self._context)[0]
 
     def get_menu(self, website_id, url):
-        return self.execute_odoo('website.menu', 'search',
-                                 [[('website_id', '=', website_id), ('url', '=', url)], 0, 1, "id", False],
-                                 {'context': self._context})[0]
+        return self.search('website.menu', [('website_id', '=', website_id), ('url', '=', url)],
+                           limit=1, order='id', context=self._context)[0]
 
     def get_search_id(self, model, domain, order='asc'):
-        res = self.execute_odoo(model, 'search', [domain, 0, 1, "id %s" % order, False], {'context': self._context})
+        res = self.search(model, domain, limit=1, order="id %s" % order, context=self._context)
         return res[0] if res else False
 
     def get_id_from_xml_id(self, xml_id, no_raise=False):
@@ -224,7 +229,7 @@ class OdooConnection:
         if search_value_xml_id:
             object_id = self.get_id_from_xml_id(search_value_xml_id)
             domain = [(domain[0][0], domain[0][1], object_id)]
-        object_ids = self.execute_odoo(model, 'search', [domain, 0, 0, "id", False], {'context': self._context})
+        object_ids = self.search(model,  domain, order='id', context=self._context)
         self.execute_odoo(model, 'write', [object_ids, {'active': is_active}], {'context': self._context})
 
     def read_search(self, model, domain, context=False):
@@ -233,7 +238,7 @@ class OdooConnection:
                                 {'context': context or self._context})
         return res
 
-    def search(self, model, domain=[], fields=[], order=[], offset=0, limit=0, context=False):
+    def search_read(self, model, domain=[], fields=[], order=[], offset=0, limit=0, context=False):
         params = [domain, fields, offset, limit, order]
         res = self.execute_odoo(model, 'search_read', params, {'context': context or self._context})
         return res

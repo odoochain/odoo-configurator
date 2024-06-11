@@ -27,6 +27,7 @@ class OdooModule:
             self._context = self._connection.context.copy()
             self.execute_odoo = self._connection.execute_odoo
             self.search = self._connection.search
+            self.search_read = self._connection.search_read
             self.get_xml_id_from_id = self._connection.get_xml_id_from_id
             self.get_record = self._connection.get_record
             self.default_get = self._connection.default_get
@@ -107,8 +108,7 @@ class OdooModule:
                     if config[key].get('update_domain', False):
                         continue
 
-                    object_ids = self.execute_odoo(model, 'search', [domain, 0, 0, "id", False],
-                                                   {'context': self._context})
+                    object_ids = self.search(model, domain, order='id', context=self._context)
                     self.logger.debug("%s %s %s", model, domain, object_ids)
                     if object_ids:
                         config[key]['force_id'] = object_ids[0]
