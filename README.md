@@ -24,6 +24,7 @@ Provided file must contain the auth/odoo section to set connexion parameters.
 
 ```yml
     name: project_name local
+    version: 16.0
 
     inherits:
         - ../work_dir/project_name/project_name.yml
@@ -35,6 +36,8 @@ Provided file must contain the auth/odoo section to set connexion parameters.
             username: admin
             password: admin123
 ```
+
+The`version` parameter is required for odoo versions >= 15.0
 
 ## Inherits
 
