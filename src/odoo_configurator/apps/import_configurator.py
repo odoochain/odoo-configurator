@@ -215,10 +215,15 @@ class ImportConfigurator(base.OdooModule):
     def get_record_prefix(self, record):
         prefix_words = []
         for field_name in self.display_name_prefix_fields:
+            prefix = ''
             field_id = self.model_fields[field_name]['field']
             if field_id['ttype'] == 'many2one' and record[field_name]:
                 related_record = self.search_read(field_id['relation'], [('id', '=', record[field_name][0])])
                 prefix = related_record and related_record[0]['name']
+            elif field_id['ttype'] == 'many2many' and record[field_name]:
+                related_records = self.search_read(field_id['relation'], [('id', 'in', record[field_name])])
+                if related_records:
+                    prefix = ' '.join([related_record['name'] for related_record in related_records])
             else:
                 prefix = record[field_name]
             if prefix:
