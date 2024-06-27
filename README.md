@@ -250,13 +250,10 @@ To call an action server (`ir.actions.server`):
 To set groups on a user you can remove previous groups with "unlink all":
 ```yml
     users:
-        datas:
+        users:
             User Example:
-                model: res.users
                 force_id: base.user_example
-                values:
-                    name: Example
-                    login: example@test.com
+                login: example@test.com
                 groups_id:
                     - unlink all
                     - base.group_portal
@@ -406,6 +403,7 @@ Actions:
             order_by: name, ref
             force_export_fields: ["email_formatted", "country_code"]
             excluded_fields: ["email", "country_id"]
+            context: {'active_test': False}
 ```
 
 ## Release Configuration

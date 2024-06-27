@@ -29,6 +29,8 @@ class OdooModule:
             self.search = self._connection.search
             self.search_read = self._connection.search_read
             self.get_xml_id_from_id = self._connection.get_xml_id_from_id
+            self.get_id_from_xml_id = self._connection.get_id_from_xml_id
+            self.get_ref = self._connection.get_ref
             self.get_record = self._connection.get_record
             self.default_get = self._connection.default_get
         self.logger = get_logger(self._name.ljust(20))
