@@ -12,7 +12,7 @@ class OdooUsers(base.OdooModule):
     def apply(self):
         super(OdooUsers, self).apply()
 
-        users = self._datas.get(self._key, {}).get('datas', {})
+        users = self._datas.get(self._key, {}).get('users', {})
         for user in users:
             groups_id = []
             for group in users[user].get("groups_id", []):
@@ -22,12 +22,18 @@ class OdooUsers(base.OdooModule):
                     groups_id.append(
                         (4, self._connection.get_ref(group)))
 
-            vals = {
-                'login': users[user]['values'].get("login"),
-                'groups_id': groups_id,
-            }
+            login = users[user].get('login')
+            if users[user].get('force_id', False):
+                user_id = self.get_id_from_xml_id(users[user].get('force_id'))
+            else:
+                user_id = self.search('res.users', [('login', '=', login)], order='id', context=self._context)
+
+            vals = {}
+            if login:
+                vals['login'] = login
+            if groups_id:
+                vals['groups_id'] = groups_id
             self._context['active_test'] = False
-            user_id = self.search('res.users', [('login', '=', vals['login'])], order='id', context=self._context)
             if not user_id:
                 self.execute_odoo('res.users', 'create', [vals], {'context': self._context})
             else:

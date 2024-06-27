@@ -116,7 +116,7 @@ class OdooDatas(base.OdooModule):
 
             if delete_id:
                 try:
-                    object_id = self._connection.get_id_from_xml_id(delete_id, no_raise=True)
+                    object_id = self.get_id_from_xml_id(delete_id, no_raise=True)
                     if object_id:
                         self.execute_odoo(model, 'unlink', [object_id])
                 except Exception as e:
@@ -127,7 +127,7 @@ class OdooDatas(base.OdooModule):
             if update_domain:
                 domain = self.eval_param_value(update_domain)
                 if search_value_xml_id:
-                    object_id = self._connection.get_id_from_xml_id(search_value_xml_id)
+                    object_id = self.get_id_from_xml_id(search_value_xml_id)
                     for condition in domain:
                         if condition[2] == 'search_value_xml_id':
                             condition[2] = object_id
@@ -169,7 +169,7 @@ class OdooDatas(base.OdooModule):
                     if values[key] and isinstance(values[key][0], str) and '.' in values[key][0]:
                         if not force_id or isinstance(force_id, int):
                             field_name = key.replace('/id', '')
-                            values[field_name] = [self._connection.get_ref(v) for v in values[key]]
+                            values[field_name] = [self.get_ref(v) for v in values[key]]
                             values.pop(key)
                         else:
                             values[key] = ','.join(values[key])
@@ -177,7 +177,7 @@ class OdooDatas(base.OdooModule):
                     if values[key] and '.' in values[key]:
                         if not force_id or isinstance(force_id, int):
                             field_name = key.replace('/id', '')
-                            values[field_name] = self._connection.get_ref(values[key])
+                            values[field_name] = self.get_ref(values[key])
                             values.pop(key)
 
             load = datas[data].get('load', False)
