@@ -4,6 +4,7 @@
 
 from collections import OrderedDict
 from ast import literal_eval
+import json
 
 from . import base
 from .config import OdooConfig
@@ -179,6 +180,10 @@ class OdooDatas(base.OdooModule):
                             field_name = key.replace('/id', '')
                             values[field_name] = self.get_ref(values[key])
                             values.pop(key)
+                elif not isinstance(values[key], str) and key.endswith('/json'):
+                    field_name = key.replace('/json', '')
+                    values[field_name] = str(json.dumps(values[key]))
+                    values.pop(key)
 
             load = datas[data].get('load', False)
             load_fields = []
