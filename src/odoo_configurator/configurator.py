@@ -139,7 +139,7 @@ class Configurator:
             script_files = self.get_files_path(parsed_config['script_files'])
 
             for script_file in script_files:
-                parsed_script = get_config_from_files(script_files)
+                parsed_script = get_config_from_files([script_file])
                 if parsed_script.get('title'):
                     parsed_script['title'] = '%s : %s' % (os.path.basename(script_file),
                                                           parsed_script.get('title'))
