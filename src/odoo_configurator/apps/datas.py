@@ -185,7 +185,6 @@ class OdooDatas(base.OdooModule):
                     values[field_name] = str(json.dumps(values[key]))
                     values.pop(key)
 
-            load = datas[data].get('load', False)
             load_fields = []
             raw_load_values = []
             if load:

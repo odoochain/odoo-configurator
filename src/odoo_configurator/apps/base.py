@@ -23,6 +23,7 @@ class OdooModule:
         self._pre_datas = configurator.pre_update_config
         self._mode = configurator.mode
         self._debug = configurator.debug
+        self.xmlid_cache = configurator.xmlid_cache
         if self._connection:
             self._context = self._connection.context.copy()
             self.execute_odoo = self._connection.execute_odoo
