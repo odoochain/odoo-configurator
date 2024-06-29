@@ -38,7 +38,7 @@ class OdooConnection:
     _cache = {}
 
     def __init__(self, url, dbname, user, password, version=False, http_user=None, http_password=None, createdb=False,
-                 debug_xmlrpc=False):
+                 debug_xmlrpc=False, configurator=None):
         self.logger = get_logger("Odoo Connection".ljust(15))
         if debug_xmlrpc:
             self.logger.setLevel(logging.DEBUG)
@@ -51,6 +51,8 @@ class OdooConnection:
         self._http_user = http_user
         self._http_password = http_password
         self._version = version
+        self._configurator = configurator
+        self.xmlid_cache = configurator.xmlid_cache if configurator else {}
         # noinspection PyProtectedMember,PyUnresolvedReferences
         self._insecure_context = ssl._create_unverified_context()
         self._load_cache()
@@ -149,10 +151,13 @@ class OdooConnection:
         return self.execute_odoo(model, 'search', args, {'context': context})
 
     def get_ref(self, external_id):
+        if external_id in self.xmlid_cache:
+            return self.xmlid_cache[external_id]
         res = self.execute_odoo('ir.model.data',
                                 self._get_xmlrpc_method('get_object_reference'),
                                 external_id.split('.'))[1]
         self.logger.debug('Get ref %s > %s' % (external_id, res))
+        self.xmlid_cache[external_id] = res
         return res
 
     def get_image_url(self, url):

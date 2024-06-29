@@ -89,6 +89,7 @@ class Configurator:
             http_password=odoo_params.get('http_password'),
             createdb=odoo_params.get('create_db'),
             debug_xmlrpc=self.debug_xmlrpc,
+            configurator=self
         )
 
     def get_odoo_auth_params(self):
