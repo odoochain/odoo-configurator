@@ -13,7 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added 
 
+ - JSON field type:
+    ```yml
+       field_name/json: [{'key': 'value'}]
+    ```
  - Context parameter in import yml file
+ - Load optimization
+ - XMLID cache optimization
 
 ## [3.4.11] - 2024-06-17
 
