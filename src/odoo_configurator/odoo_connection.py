@@ -139,9 +139,10 @@ class OdooConnection:
             else:
                 self.logger.error(pformat(args))
                 if isinstance(e, xmlrpc.client.Fault):
-                    self.logger.error(e.faultString, exc_info=True)
+                    self.logger.error(e.faultString)
+                    exit(1)
                 else:
-                    self.logger.error(e)
+                    self.logger.error(e, exc_info=True)
                 raise e
 
     def search(self, model, domain, offset=0, limit=None, order=None, count=None, context=None):
