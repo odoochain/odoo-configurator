@@ -9,7 +9,6 @@ from .logging import get_logger
 from pykeepass import PyKeePass
 
 logger = get_logger(__name__)
-CACHE = "/tmp/.configurator_cache"
 
 
 class KeepassCli:
@@ -25,8 +24,6 @@ class KeepassCli:
 
     def init_keepass(self, keepass_password):
         password = keepass_password or os.environ.get('KEEPASS_PASSWORD', '')
-        # if not password:
-        #     password = getpass.getpass('Keepass Password: ')
         self._keepass_password = password
         params = self.get_keepass_params()
         self.keepass_path = keepass_password or params.get('keepass_path', '')

@@ -170,15 +170,8 @@ class OdooConnection:
         return self._cache['image_url'][url]
 
     def get_image_local(self, path):
-        if 'path' not in self._cache:
-            self._cache['path'] = {}
         path = get_file_full_path(path)
-
-        if path not in self._cache['path']:
-
-            self._cache['path'][path] = base64.b64encode(open(path, "rb").read()).decode("utf-8", "ignore")
-            self._save_cache()
-        return self._cache['path'][path]
+        return base64.b64encode(open(path, "rb").read()).decode("utf-8", "ignore")
 
     @staticmethod
     def get_local_file(path, encode=False):
