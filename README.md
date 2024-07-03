@@ -223,8 +223,8 @@ Ir model Data Config:
 
 ## Special field name
 
-field_name/id : to provide a xmlid to many2one fields instead of a value, without using get_ref
-field_name/ids : to provide a list of xmlid to many2many fields
+field_name_id/id : to provide a xmlid to many2one fields instead of a value, without using get_ref
+field_name_ids/id : to provide a list of xmlid to many2many fields
 field_name/json : to provide a list or dict to convert into json string
 
 ## Server Actions and Functions
