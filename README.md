@@ -396,6 +396,38 @@ In yml file:
   - **limit** : Maximum number of record to import
   - **skip_line** : index of the record to start with
 
+## Specific Import with Python script
+
+```yml
+Import Scripts:
+  import_data:
+    Task Import 001:
+      model: project.product
+      file_path: scripts/products.csv
+      specific_import: scripts/import_products.py
+      specific_method: import_products
+```
+
+scripts/import_products.py :
+
+```python
+from src.odoo_configurator.import_manager import ImportManager
+
+def import_products(self, file_path, model, params):
+    self.set_params(params)
+    fields = self.get_model_fields(model)
+    raw_datas = self.parse_csv_file_dictreader(file_path, fields)
+    m_order = self.odoo.model('sale.order')
+    orders = m_order.search([], context=self._context)
+    self.logger.info('Orders : %s' % ','.join([o['name'] for o in orders]))
+    company_ids_cache = self.odoo.get_id_ref_dict('res.company')
+    company_xmlid_cache = self.odoo.get_xmlid_dict('res.company')
+    products = self.odoo.search('product.template', [], context=self._context)
+    ...
+
+ImportManager.clean_products = clean_products
+```
+
 
 ## Generate YML data file from a model
 
