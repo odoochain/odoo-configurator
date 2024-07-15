@@ -11,6 +11,7 @@ import ssl
 import xmlrpc.client
 from pprint import pformat
 from .logging import get_logger
+from s6r_odoo import OdooConnection as Orm
 
 import requests
 from bs4 import BeautifulSoup
@@ -57,6 +58,7 @@ class OdooConnection:
         self._insecure_context = ssl._create_unverified_context()
         self._load_cache()
         self._compute_url()
+        self.odoo = Orm(self._url, self._dbname, self._user, self._password)
         if createdb:
             self._create_db()
         self._prepare_connection()

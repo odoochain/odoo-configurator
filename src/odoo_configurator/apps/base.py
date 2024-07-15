@@ -25,6 +25,7 @@ class OdooModule:
         self._debug = configurator.debug
         self.xmlid_cache = configurator.xmlid_cache
         if self._connection:
+            self.odoo = self._connection.odoo
             self._context = self._connection.context.copy()
             self.execute_odoo = self._connection.execute_odoo
             self.search = self._connection.search

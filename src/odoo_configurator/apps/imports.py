@@ -3,9 +3,9 @@
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl.html).
 
 from collections import OrderedDict
-import os
-import sys
+import importlib.util as ilu
 from . import base
+from ..odoo_connection import get_file_full_path
 
 
 class OdooImports(base.OdooModule):
@@ -14,10 +14,14 @@ class OdooImports(base.OdooModule):
     def get_func(self, data):
         func = getattr(self._import_manager, 'import_csv')
         if data.get('specific_import', False):
-            import importlib.util as ilu
-            self.logger.info("Import specific import %s %s : %s" % (
-                data.get('specific_import', False), data.get('specific_method', False), data.get('file_path', False)))
-            path = os.path.join(os.path.dirname(sys.argv[1]), 'datas', data.get('specific_import', False))
+            if data.get('file_path', ''):
+                self.logger.info("Specific import %s %s : %s" % (data.get('specific_import', False),
+                                                                 data.get('specific_method', False),
+                                                                 data.get('file_path', '')))
+            else:
+                self.logger.info("Specific import %s %s" % (data.get('specific_import', False),
+                                                            data.get('specific_method', False)))
+            path = get_file_full_path(data.get('specific_import'))
             spec = ilu.spec_from_file_location('import_specific', path)
             specific_lib = ilu.module_from_spec(spec)
             spec.loader.exec_module(specific_lib)
@@ -34,7 +38,8 @@ class OdooImports(base.OdooModule):
                 return
             import_data = datas[import_name]
             func = self.get_func(import_data)
-            func(import_data.get('file_path', ''), import_data.get('model', ''), params=import_data)
+            func(get_file_full_path(import_data.get('file_path', '')),
+                 import_data.get('model', ''), params=import_data)
         for key in self._datas:
             if isinstance(self._datas.get(key), dict) or isinstance(self._datas.get(key), OrderedDict):
                 for key_import, import_data in self._datas.get(key, {}).get('import_data', {}).items():
@@ -43,4 +48,5 @@ class OdooImports(base.OdooModule):
                         self.logger.info("\t\t* skipped not install mode")
                         return
                     func = self.get_func(import_data)
-                    func(import_data.get('file_path', ''), import_data.get('model', ''), params=import_data)
+                    func(get_file_full_path(import_data.get('file_path', '')),
+                         import_data.get('model', ''), params=import_data)
