@@ -58,10 +58,20 @@ class OdooConnection:
         self._insecure_context = ssl._create_unverified_context()
         self._load_cache()
         self._compute_url()
-        self.odoo = Orm(self._url, self._dbname, self._user, self._password)
+        try:
+            self.odoo = Orm(self._url, self._dbname, self._user, self._password)
+        except ConnectionError:
+            exit(1)
+        except Exception as err:
+            self.logger.error(err)
         if createdb:
             self._create_db()
-        self._prepare_connection()
+        if self.odoo.uid:
+            self.common = self.odoo.common
+            self.object = self.odoo.object
+            self.uid = self.odoo.uid
+        else:
+            self._prepare_connection()
 
     @property
     def context(self):
