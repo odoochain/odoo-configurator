@@ -29,6 +29,7 @@ class OdooDatas(base.OdooModule):
         pass  # For remove standard log
 
     def execute(self, datas):
+        execute_config = not bool(datas)
         for key in datas:
             if isinstance(datas.get(key), dict) or isinstance(datas.get(key), OrderedDict):
                 data = datas.get(key).get('datas', {})
@@ -37,7 +38,7 @@ class OdooDatas(base.OdooModule):
                     self.odoo_datas(data)
 
         scripts = datas.get('scripts', [])
-        odoo_config = OdooConfig(self._configurator)
+        odoo_config = OdooConfig(self._configurator, auto_apply=False)
         for script in scripts:
             self.logger.info("Script - %s" % script.get('title'))
             odoo_config.execute_script_config(script)

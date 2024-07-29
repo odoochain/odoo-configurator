@@ -9,6 +9,10 @@ from . import base
 class OdooConfig(base.OdooModule):
     _name = "Config"
 
+    def __init__(self, configurator, auto_apply=True):
+        self.auto_apply = auto_apply
+        super(OdooConfig, self).__init__(configurator)
+
     def apply(self):
         super(OdooConfig, self).apply()
         config_values = self.prepare_config_values()
@@ -20,6 +24,7 @@ class OdooConfig(base.OdooModule):
         for key in datas:
             if isinstance(datas.get(key), dict) or isinstance(datas.get(key), OrderedDict):
                 if datas.get(key).get('config', {}):
+                    self.logger.info("\t- Config for %s" % key)
                     values = self.prepare_company_values(datas.get(key).get('config', {}))
                     self.execute_config(values)
 
