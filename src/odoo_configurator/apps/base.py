@@ -13,6 +13,8 @@ from ..logging import get_logger
 
 class OdooModule:
     # pylint: disable=too-many-instance-attributes
+    auto_apply = True
+
     def __init__(self, configurator):
         self._configurator = configurator
         self._connection = configurator.connection
@@ -40,7 +42,8 @@ class OdooModule:
             self.logger.setLevel(logging.DEBUG)
         else:
             self.logger.setLevel(logging.INFO)
-        self.apply()
+        if self.auto_apply:
+            self.apply()
 
     @property
     def _name(self):
