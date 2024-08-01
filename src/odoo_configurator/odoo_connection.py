@@ -24,6 +24,8 @@ METHODE_MAPPING = {
 
 
 def get_file_full_path(path):
+    if not path:
+        return ''
     param_path = path
     if not os.path.isfile(path):
         path = os.path.join(os.path.dirname(sys.argv[1]), param_path)
