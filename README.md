@@ -425,7 +425,7 @@ def import_products(self, file_path, model, params):
     products = self.odoo.search('product.template', [], context=self._context)
     ...
 
-ImportManager.clean_products = clean_products
+ImportManager.import_products = import_products
 ```
 
 
