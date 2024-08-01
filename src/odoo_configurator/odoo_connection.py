@@ -36,6 +36,19 @@ def get_file_full_path(path):
     return path
 
 
+def get_dir_full_path(path):
+    if not path:
+        return ''
+    param_path = path
+    if not os.path.isdir(path):
+        path = os.path.join(os.path.dirname(sys.argv[1]), param_path)
+    if not os.path.isdir(path):
+        path = os.path.join(os.path.dirname(sys.argv[1]), 'datas', param_path)
+    if not os.path.isdir(path):
+        raise NotADirectoryError('%s not found!' % param_path)
+    return path
+
+
 class OdooConnection:
     _context = {'lang': 'fr_FR', 'noupdate': True}
     _cache = {}
