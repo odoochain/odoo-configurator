@@ -411,7 +411,7 @@ Import Scripts:
 scripts/import_products.py :
 
 ```python
-from src.odoo_configurator.import_manager import ImportManager
+from odoo_configurator.import_manager import ImportManager
 
 def import_products(self, file_path, model, params):
     self.set_params(params)
