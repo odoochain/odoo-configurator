@@ -37,6 +37,7 @@ class OdooModule:
             self.get_ref = self._connection.get_ref
             self.get_record = self._connection.get_record
             self.default_get = self._connection.default_get
+            self.create_xml_id = self._connection.create_xml_id
         self.logger = get_logger(self._name.ljust(20))
         if self._debug:
             self.logger.setLevel(logging.DEBUG)

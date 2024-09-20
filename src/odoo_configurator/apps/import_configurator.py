@@ -239,8 +239,10 @@ class ImportConfigurator(base.OdooModule):
         return xmlid
 
     def compute_xml_id(self, record, model, retry=0):
-        xml_id = 'external_config.%s_%s' % (model.replace('.', '_'), str(record['id']+retry).zfill(5))
-        if not self._connection.get_id_from_xml_id(xml_id, no_raise=True):
+        name = '%s_%s' % (model.replace('.', '_'), str(record['id']+retry).zfill(5))
+        xml_id = 'external_config.%s' % name
+        if not self.get_id_from_xml_id(xml_id, no_raise=True):
+            self.create_xml_id('external_config', model, name, record['id'])
             return xml_id
         else:
             retry += 1

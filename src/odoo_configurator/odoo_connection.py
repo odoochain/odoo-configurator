@@ -251,6 +251,14 @@ class OdooConnection:
             raise e
             # return False
 
+    def create_xml_id(self, module, model, name, res_id):
+        self.odoo.create('ir.model.data', {
+            'module': module,
+            'name': name,
+            'model': model,
+            'res_id': res_id
+        })
+
     def set_active(self, is_active, model, domain, search_value_xml_id):
         if search_value_xml_id:
             object_id = self.get_id_from_xml_id(search_value_xml_id)
