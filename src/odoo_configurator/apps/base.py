@@ -113,7 +113,7 @@ class OdooModule:
                     for i in search_key.split(','):
                         if values.get(i, False):
                             domain.append((i, '=', values[i]))
-                    if config[key].get('update_domain', False):
+                    if config[key].get('update_domain', False) or not model:
                         continue
 
                     object_ids = self.search(model, domain, order='id', context=self._context)

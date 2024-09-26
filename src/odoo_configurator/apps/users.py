@@ -27,6 +27,8 @@ class OdooUsers(base.OdooModule):
                 self.update_user(users[user])
         if self._key in self._datas:
             self._datas.pop(self._key)
+        if self._key in datas:
+            datas.pop(self._key)
 
     def update_user(self, user_values):
         groups_id = []
@@ -45,7 +47,7 @@ class OdooUsers(base.OdooModule):
         else:
             user_id = self.search('res.users', [('login', '=', login)], order='id', context=context)
 
-        vals = user_values.get('values', {})
+        vals = dict(user_values.get('values', {}))
         if login:
             vals['login'] = login
         if groups_id:

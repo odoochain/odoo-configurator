@@ -8,6 +8,8 @@ import json
 
 from . import base
 from .config import OdooConfig
+from .modules import OdooModules
+from .users import OdooUsers
 
 
 def prepare_load_values(load_fields, fields, values):
@@ -29,19 +31,23 @@ class OdooDatas(base.OdooModule):
         pass  # For remove standard log
 
     def execute(self, datas):
-        execute_config = not bool(datas)
         for key in datas:
-            if isinstance(datas.get(key), dict) or isinstance(datas.get(key), OrderedDict):
-                data = datas.get(key).get('datas', {})
+            values = datas.get(key)
+            if isinstance(values, dict) or isinstance(values, OrderedDict):
+                data = values.get('datas', {})
                 if data:
-                    self.logger.info("\t- %s" % key)
+                    self.logger.info("\tDatas - %s" % key)
                     self.odoo_datas(data)
 
         scripts = datas.get('scripts', [])
         odoo_config = OdooConfig(self._configurator, auto_apply=False)
+        odoo_modules = OdooModules(self._configurator)
+        odoo_users = OdooUsers(self._configurator)
         for script in scripts:
             self.logger.info("Script - %s" % script.get('title'))
+            odoo_modules.install_config_modules(script)
             odoo_config.execute_script_config(script)
+            odoo_users.execute(script)
             self.execute(script)
 
     def execute_pre_update_config_datas(self):

@@ -5,6 +5,7 @@
 import base64
 import logging
 import os.path
+import re
 import sys
 import pickle
 import ssl
@@ -252,6 +253,7 @@ class OdooConnection:
             # return False
 
     def create_xml_id(self, module, model, name, res_id):
+        name = re.sub('[^a-zA-Z0-9]', '_', name).lower()
         self.odoo.create('ir.model.data', {
             'module': module,
             'name': name,
