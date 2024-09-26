@@ -134,6 +134,11 @@ class Configurator:
         if parsed_config.get('clear_release_directory'):
             self.clear_release_directory = parsed_config.get('clear_release_directory')
 
+        self.parse_scripts(parsed_config)
+
+        return parsed_config, pre_update_config
+
+    def parse_scripts(self, parsed_config):
         parsed_config['scripts'] = []
         count_script = 0
         while len(parsed_config.get("script_files", [])) != count_script:
@@ -147,9 +152,9 @@ class Configurator:
                                                           parsed_script.get('title'))
                 else:
                     parsed_script['title'] = os.path.basename(script_file)
+                if 'script_files' in parsed_script:
+                    self.parse_scripts(parsed_script)
                 parsed_config['scripts'].append(parsed_script)
-
-        return parsed_config, pre_update_config
 
     def get_release_files(self):
         files = []
