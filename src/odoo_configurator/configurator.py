@@ -17,6 +17,7 @@ from .apps import system_parameter
 from .apps import datas
 from .apps import defaults
 from .apps import imports
+from .apps import python_script
 from .apps import modules
 from .apps import roles
 from .apps import translations
@@ -235,6 +236,7 @@ class Configurator:
         account.OdooAccount(self)
         website.OdooWebsite(self)
         imports.OdooImports(self)
+        python_script.PythonScript(self)
         import_configurator.ImportConfigurator(self)
         mattermost.Mattermost(self)
         call.OdooCalls(self)

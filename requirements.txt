@@ -67,4 +67,6 @@ urllib3==2.0.3
 s6r_bitwarden_cli==1.0.7
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
-s6r-odoo>=1.0.7
+s6r-odoo>=1.0.8
+psycopg==3.2.2
+pymssql==2.3.1
