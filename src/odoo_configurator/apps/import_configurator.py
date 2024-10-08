@@ -57,10 +57,13 @@ class ImportConfigurator(base.OdooModule):
     model_fields = {}
     display_name_prefix_fields = []
 
-    def get_configurator_records(self, model, domain=[], excluded_fields=[], force_export_fields=[],
-                                 order_by='', display_name_prefix_fields='', group_by=[], with_load=False, context={}):
+    def get_configurator_records(self, model, domain=[], excluded_fields=[], force_export_fields=[], order_by='',
+                                 display_name_prefix_fields='', group_by=[], with_load=False, context={}, **kwargs):
         files = []
         self.display_name_prefix_fields = display_name_prefix_fields
+        if kwargs.get('ids'):
+            res_ids = [self.get_id_from_xml_id(xml_id) for xml_id in kwargs.get('ids')]
+            domain = [('id', 'in', res_ids)]
         if not model:
             return '', []
         records = self.search_read(model, domain, order=order_by, context=context)
@@ -261,6 +264,7 @@ class ImportConfigurator(base.OdooModule):
                         model_file = configurator_model_files[configurator_model_file]
                         model = model_file.get('model')
                         domain = model_file.get('domain')
+                        ids = model_file.get('ids')
                         order_by = model_file.get('order_by')
                         group_by = model_file.get('group_by')
                         context = dict(model_file.get('context', {}))
@@ -272,6 +276,7 @@ class ImportConfigurator(base.OdooModule):
                         dest_path = os.path.dirname(self._configurator.paths[0]) + '/config'
                         params = {'model': model,
                                   'domain': domain,
+                                  'ids': ids,
                                   'order_by': order_by,
                                   'group_by': group_by,
                                   'with_load': load,
