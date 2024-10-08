@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
  - Allows to pass a list of xmlid to import
+ - Allows to do csv imports in script mode
 
 ## [3.6.1] - 2024-09-30
 

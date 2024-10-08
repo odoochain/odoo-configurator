@@ -10,6 +10,7 @@ from . import base
 from .config import OdooConfig
 from .modules import OdooModules
 from .users import OdooUsers
+from .imports import OdooImports
 
 
 def prepare_load_values(load_fields, fields, values):
@@ -43,11 +44,13 @@ class OdooDatas(base.OdooModule):
         odoo_config = OdooConfig(self._configurator, auto_apply=False)
         odoo_modules = OdooModules(self._configurator)
         odoo_users = OdooUsers(self._configurator)
+        odoo_imports = OdooImports(self._configurator)
         for script in scripts:
             self.logger.info("Script - %s" % script.get('title'))
             odoo_modules.install_config_modules(script)
             odoo_config.execute_script_config(script)
             odoo_users.execute(script)
+            odoo_imports.apply(script)
             self.execute(script)
 
     def execute_pre_update_config_datas(self):

@@ -31,26 +31,27 @@ class OdooImports(base.OdooModule):
             func = getattr(self._import_manager, 'import_csv')
         return func
 
-    def apply(self):
+    def apply(self, datas=None):
         super(OdooImports, self).apply()
         self.prepare_extra_odoo_connections()
         self.prepare_sql_connections()
+        script_datas = datas or self._datas
         if self._import_manager and not hasattr(self._import_manager, '_datas'):
             self._import_manager._datas = self._datas
 
-        datas = self._datas.get('import_data', {})
-        if datas:
+        import_datas = script_datas.get('import_data', {})
+        if import_datas:
             self.logger.info("\t- %s" % "Global")
-        for import_name in datas:
-            if not self.install_mode() and datas[import_name].get('on_install_only', False):
+        for import_name in import_datas:
+            if not self.install_mode() and import_datas[import_name].get('on_install_only', False):
                 return
-            import_data = datas[import_name]
+            import_data = import_datas[import_name]
             func = self.get_func(import_data)
             func(get_file_full_path(import_data.get('file_path', '')),
                  import_data.get('model', ''), params=import_data)
-        for key in self._datas:
-            if isinstance(self._datas.get(key), dict) or isinstance(self._datas.get(key), OrderedDict):
-                for key_import, import_data in self._datas.get(key, {}).get('import_data', {}).items():
+        for key in script_datas:
+            if isinstance(script_datas.get(key), dict) or isinstance(script_datas.get(key), OrderedDict):
+                for key_import, import_data in script_datas.get(key, {}).get('import_data', {}).items():
                     self.logger.info("\t- %s" % key_import)
                     if not self.install_mode() and import_data.get('on_install_only', False):
                         self.logger.info("\t\t* skipped not install mode")
