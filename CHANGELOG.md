@@ -5,6 +5,66 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.3] - 2024-09-10
+
+### Fixed
+
+ - Update s6r-odoo
+
+
+## [3.5.2] - 2024-07-26
+
+### Added
+
+ - Create connection with ORM
+ - Improve connection error handling
+ - Avoid Odoo Config repetition in script mode
+
+## [3.5.1] - 2024-07-12
+
+### Added
+
+ - Allows to use Scalizer Odoo light ORM in Python specific import files
+
+### Fixed
+
+ - Remove cache system from get_image_local function
+
+## [3.5.0] - 2024-06-27
+
+### Changed
+
+ - Users configuration
+
+### Added 
+
+ - JSON field type:
+    ```yml
+       field_name/json: [{'key': 'value'}]
+    ```
+ - Context parameter in import yml file
+ - Load optimization
+ - XMLID cache optimization
+
+## [3.4.11] - 2024-06-17
+
+### Added 
+
+ - Using many2many fields in export record prefix
+
+## [3.4.10] - 2024-06-11
+
+### Added 
+
+ - Compatibility with Odoo 17.0
+
+## [3.4.9] - 2024-06-05
+
+### Fixed 
+
+ - Improve update of many2many list of xmlid when the record has no xml_id
+ - Improve update of Many2one field with a xmlid when the record has no xml_id
+
 ## [3.4.8] - 2024-05-23
 
 ### Added

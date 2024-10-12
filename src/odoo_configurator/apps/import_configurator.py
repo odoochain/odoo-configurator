@@ -58,18 +58,19 @@ class ImportConfigurator(base.OdooModule):
     display_name_prefix_fields = []
 
     def get_configurator_records(self, model, domain=[], excluded_fields=[], force_export_fields=[],
-                                 order_by='', display_name_prefix_fields='', group_by=[], with_load=False):
+                                 order_by='', display_name_prefix_fields='', group_by=[], with_load=False, context={}):
         files = []
         self.display_name_prefix_fields = display_name_prefix_fields
         if not model:
-            return ''
-        records = self.search(model, domain, order=order_by)
+            return '', []
+        records = self.search_read(model, domain, order=order_by, context=context)
         if not records:
-            return ''
+            self.logger.info("No records to import for %s" % model)
+            return '', []
 
         res = ''
         prev_record_group = ''
-        model_id = self.search('ir.model', [('model', '=', model)])[0]
+        model_id = self.search_read('ir.model', [('model', '=', model)], context=context)[0]
         self.load_model_fields(model)
         for i, record in enumerate(records):
             self.logger.info("Export %s : %s/%s", model, i, len(records))
@@ -122,7 +123,7 @@ class ImportConfigurator(base.OdooModule):
 
     def load_model_fields(self, model):
         self.model_fields = dict()
-        fields = self.search('ir.model.fields', [('model', '=', model)])
+        fields = self.search_read('ir.model.fields', [('model', '=', model)])
         for field in fields:
             self.model_fields[field['name']] = {'field': field,
                                                 'default': self.default_get(model, field['name'])}
@@ -215,10 +216,15 @@ class ImportConfigurator(base.OdooModule):
     def get_record_prefix(self, record):
         prefix_words = []
         for field_name in self.display_name_prefix_fields:
+            prefix = ''
             field_id = self.model_fields[field_name]['field']
             if field_id['ttype'] == 'many2one' and record[field_name]:
-                related_record = self.search(field_id['relation'], [('id', '=', record[field_name][0])])
+                related_record = self.search_read(field_id['relation'], [('id', '=', record[field_name][0])])
                 prefix = related_record and related_record[0]['name']
+            elif field_id['ttype'] == 'many2many' and record[field_name]:
+                related_records = self.search_read(field_id['relation'], [('id', 'in', record[field_name])])
+                if related_records:
+                    prefix = ' '.join([related_record['name'] for related_record in related_records])
             else:
                 prefix = record[field_name]
             if prefix:
@@ -255,19 +261,23 @@ class ImportConfigurator(base.OdooModule):
                         domain = model_file.get('domain')
                         order_by = model_file.get('order_by')
                         group_by = model_file.get('group_by')
+                        context = dict(model_file.get('context', {}))
                         load = model_file.get('load')
                         force_export_fields = model_file.get('force_export_fields', [])
                         excluded_fields = model_file.get('excluded_fields', [])
                         display_name_prefix_fields = model_file.get('display_name_prefix_fields', [])
                         file_name = model.replace('.', '_')
                         dest_path = os.path.dirname(self._configurator.paths[0]) + '/config'
-                        res, files = self.get_configurator_records(model, domain,
-                                                                   order_by=order_by,
-                                                                   group_by=group_by,
-                                                                   with_load=load,
-                                                                   force_export_fields=force_export_fields,
-                                                                   excluded_fields=excluded_fields,
-                                                                   display_name_prefix_fields=display_name_prefix_fields)
+                        params = {'model': model,
+                                  'domain': domain,
+                                  'order_by': order_by,
+                                  'group_by': group_by,
+                                  'with_load': load,
+                                  'force_export_fields': force_export_fields,
+                                  'excluded_fields': excluded_fields,
+                                  'display_name_prefix_fields': display_name_prefix_fields,
+                                  'context': context}
+                        res, files = self.get_configurator_records(**params)
                         open('%s/%s.yml' % (dest_path, file_name), 'w').write(res)
 
                 # ##############################

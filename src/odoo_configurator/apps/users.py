@@ -12,24 +12,33 @@ class OdooUsers(base.OdooModule):
     def apply(self):
         super(OdooUsers, self).apply()
 
-        users = self._datas.get(self._key, {}).get('datas', {})
+        users = self._datas.get(self._key, {}).get('users_data', {})
         for user in users:
+            self.logger.info("User %s" % user)
             groups_id = []
-            for group in users[user].get("groups_id", []):
+            user_values = users[user]
+            context = dict(user_values.get('context', {}))
+            context.update(self._context)
+            for group in user_values.get("groups_id", []):
                 if group == "unlink all":
                     groups_id.append((5,))
                 else:
                     groups_id.append(
                         (4, self._connection.get_ref(group)))
 
-            vals = {
-                'login': users[user]['values'].get("login"),
-                'groups_id': groups_id,
-            }
-            self._context['active_test'] = False
-            user_id = self.execute_odoo('res.users', 'search', [[('login', '=', vals['login'])], 0, 0, "id", False],
-                                        {'context': self._context})
-            if not user_id:
-                self.execute_odoo('res.users', 'create', [vals], {'context': self._context})
+            login = user_values.get('login')
+            if user_values.get('force_id', False):
+                user_id = self.get_id_from_xml_id(user_values.get('force_id'))
             else:
-                self.execute_odoo('res.users', 'write', [user_id, vals], {'context': self._context})
+                user_id = self.search('res.users', [('login', '=', login)], order='id', context=context)
+
+            vals = {}
+            if login:
+                vals['login'] = login
+            if groups_id:
+                vals['groups_id'] = groups_id
+            context['active_test'] = False
+            if not user_id:
+                self.execute_odoo('res.users', 'create', [vals], {'context': context})
+            else:
+                self.execute_odoo('res.users', 'write', [user_id, vals], {'context': context})

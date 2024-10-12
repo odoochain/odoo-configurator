@@ -4,6 +4,7 @@
 
 from collections import OrderedDict
 from ast import literal_eval
+import json
 
 from . import base
 from .config import OdooConfig
@@ -28,6 +29,7 @@ class OdooDatas(base.OdooModule):
         pass  # For remove standard log
 
     def execute(self, datas):
+        execute_config = not bool(datas)
         for key in datas:
             if isinstance(datas.get(key), dict) or isinstance(datas.get(key), OrderedDict):
                 data = datas.get(key).get('datas', {})
@@ -36,7 +38,7 @@ class OdooDatas(base.OdooModule):
                     self.odoo_datas(data)
 
         scripts = datas.get('scripts', [])
-        odoo_config = OdooConfig(self._configurator)
+        odoo_config = OdooConfig(self._configurator, auto_apply=False)
         for script in scripts:
             self.logger.info("Script - %s" % script.get('title'))
             odoo_config.execute_script_config(script)
@@ -109,15 +111,14 @@ class OdooDatas(base.OdooModule):
                     domain = self.eval_param_value(delete_domain)
                 else:
                     domain = []
-                object_ids = self.execute_odoo(model, 'search', [domain, 0, 0, "id", False],
-                                               {'context': config_context})
+                object_ids = self.search(model, domain, order='id', context=config_context)
                 for object_id in object_ids:
                     self.execute_odoo(model, 'unlink', [object_id])
                 continue
 
             if delete_id:
                 try:
-                    object_id = self._connection.get_id_from_xml_id(delete_id, no_raise=True)
+                    object_id = self.get_id_from_xml_id(delete_id, no_raise=True)
                     if object_id:
                         self.execute_odoo(model, 'unlink', [object_id])
                 except Exception as e:
@@ -128,12 +129,11 @@ class OdooDatas(base.OdooModule):
             if update_domain:
                 domain = self.eval_param_value(update_domain)
                 if search_value_xml_id:
-                    object_id = self._connection.get_id_from_xml_id(search_value_xml_id)
+                    object_id = self.get_id_from_xml_id(search_value_xml_id)
                     for condition in domain:
                         if condition[2] == 'search_value_xml_id':
                             condition[2] = object_id
-                object_ids = self.execute_odoo(model, 'search', [domain, 0, 0, "id", False],
-                                               {'context': config_context})
+                object_ids = self.search(model, domain, order='id', context=config_context)
                 self.logger.debug("Update Domain %s %s" % (len(object_ids), model))
                 self.execute_odoo(model, 'write', [object_ids, dict(values)], {'context': config_context})
                 continue
@@ -147,9 +147,8 @@ class OdooDatas(base.OdooModule):
                 continue
 
             if field_key and not force_id:
-                object_ids = self.execute_odoo(model, 'search',
-                                               [[(field_key, '=', values[field_key])], 0, 0, "id", False],
-                                               {'context': config_context})
+                object_ids = self.search(model, [(field_key, '=', values[field_key])],
+                                         order='id', context=config_context)
             elif force_id:
                 if load:
                     values['id'] = force_id
@@ -166,11 +165,29 @@ class OdooDatas(base.OdooModule):
                 raise
 
             # prepare many2many list of xmlid
-            for key in values.keys():
+            keys = list(values.keys())
+            for key in keys:
                 if isinstance(values[key], list) and '/id' in key:
                     if values[key] and isinstance(values[key][0], str) and '.' in values[key][0]:
-                        values[key] = ','.join(values[key])
+                        if not force_id or isinstance(force_id, int):
+                            field_name = key.replace('/id', '')
+                            values[field_name] = [self.get_ref(v) for v in values[key]]
+                            values.pop(key)
+                        else:
+                            values[key] = ','.join(values[key])
+                elif isinstance(values[key], str) and '/id' in key:
+                    if values[key] and '.' in values[key]:
+                        if not force_id or isinstance(force_id, int):
+                            field_name = key.replace('/id', '')
+                            values[field_name] = self.get_ref(values[key])
+                            values.pop(key)
+                elif not isinstance(values[key], str) and key.endswith('/json'):
+                    field_name = key.replace('/json', '')
+                    values[field_name] = str(json.dumps(values[key]))
+                    values.pop(key)
 
+            load_fields = []
+            raw_load_values = []
             if load:
                 fields, rec_values = self.save_values(model, values, config_context, force_id, object_ids,
                                                       load_batch=load)
@@ -211,11 +228,10 @@ class OdooDatas(base.OdooModule):
         for message in res['messages']:
             self.logger.error("%s : %s" % (message['record'], message['message']))
 
-    def set_force_id(self, model, values, config_context, force_id=False):
+    def set_force_id(self, model, values, config_context, force_id=''):
         if isinstance(force_id, int):
             values['id'] = force_id
-            object_ids = self.execute_odoo(model, 'search', [[('id', '=', force_id)], 0, 0, "id", False],
-                                           {'context': config_context})
+            object_ids = self.search(model, [('id', '=', force_id)], order='id', context=config_context)
         else:
             if '.' not in force_id:
                 force_id = "external_config." + force_id
@@ -223,9 +239,8 @@ class OdooDatas(base.OdooModule):
             if force_id in self._configurator.xmlid_cache:
                 return values, self._configurator.xmlid_cache[force_id]
             module, name = force_id.split('.')
-            if self.execute_odoo('ir.model.data', 'search',
-                                 [[('module', '=', module), ('name', '=', name)], 0, 0, "id", False],
-                                 {'context': config_context}):
+            if self.search('ir.model.data', [('module', '=', module), ('name', '=', name)],
+                           order='id', context=config_context):
                 object_ids = self._connection.get_ref(force_id)
             else:
                 object_ids = []

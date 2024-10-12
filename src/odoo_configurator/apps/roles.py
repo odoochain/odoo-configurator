@@ -19,9 +19,8 @@ class OdooRoles(base.OdooModule):
                     self.logger.info("\t- %s" % key_import)
                     force_id = data.get('force_id', False)
                     role_name = data['values'].get("name")
-                    role_id = self.execute_odoo('res.users.role', 'search',
-                                                [[('name', '=', role_name)], 0, 0, "id", False],
-                                                {'context': self._context})
+                    role_id = self.search('res.users.role', [('name', '=', role_name)],
+                                          order='id', context=self._context)
                     implied_ids = [(5,), ]
                     for group in data['values'].get("implied_ids"):
                         implied_ids.append(

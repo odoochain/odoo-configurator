@@ -13,6 +13,8 @@ from ..logging import get_logger
 
 class OdooModule:
     # pylint: disable=too-many-instance-attributes
+    auto_apply = True
+
     def __init__(self, configurator):
         self._configurator = configurator
         self._connection = configurator.connection
@@ -23,11 +25,16 @@ class OdooModule:
         self._pre_datas = configurator.pre_update_config
         self._mode = configurator.mode
         self._debug = configurator.debug
+        self.xmlid_cache = configurator.xmlid_cache
         if self._connection:
+            self.odoo = self._connection.odoo
             self._context = self._connection.context.copy()
             self.execute_odoo = self._connection.execute_odoo
             self.search = self._connection.search
+            self.search_read = self._connection.search_read
             self.get_xml_id_from_id = self._connection.get_xml_id_from_id
+            self.get_id_from_xml_id = self._connection.get_id_from_xml_id
+            self.get_ref = self._connection.get_ref
             self.get_record = self._connection.get_record
             self.default_get = self._connection.default_get
         self.logger = get_logger(self._name.ljust(20))
@@ -35,7 +42,8 @@ class OdooModule:
             self.logger.setLevel(logging.DEBUG)
         else:
             self.logger.setLevel(logging.INFO)
-        self.apply()
+        if self.auto_apply:
+            self.apply()
 
     @property
     def _name(self):
@@ -107,8 +115,7 @@ class OdooModule:
                     if config[key].get('update_domain', False):
                         continue
 
-                    object_ids = self.execute_odoo(model, 'search', [domain, 0, 0, "id", False],
-                                                   {'context': self._context})
+                    object_ids = self.search(model, domain, order='id', context=self._context)
                     self.logger.debug("%s %s %s", model, domain, object_ids)
                     if object_ids:
                         config[key]['force_id'] = object_ids[0]

@@ -27,7 +27,7 @@ class OdooSystemParameter(base.OdooModule):
             if isinstance(system_parameter[key], str) and system_parameter[key].startswith('get_'):
                 system_parameter[key] = self.safe_eval(system_parameter[key])
         domain = [['key', '=', system_parameter['key']]]
-        parameter_id = self.search('ir.config_parameter', domain, fields=['id', 'key', 'value'],
+        parameter_id = self.search_read('ir.config_parameter', domain, fields=['id', 'key', 'value'],
                                    context=self._context, limit=1)
         if parameter_id:
             parameter_id = parameter_id[0]

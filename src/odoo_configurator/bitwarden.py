@@ -7,7 +7,6 @@ from s6r_bitwarden_cli import BitwardenCli
 from .apps import connection
 
 logger = get_logger("Bitwarden".ljust(20))
-CACHE = "/tmp/.configurator_cache"
 
 
 class Bitwarden:

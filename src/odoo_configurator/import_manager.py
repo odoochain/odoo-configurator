@@ -10,6 +10,7 @@ from datetime import datetime
 import unidecode
 import re
 from pprint import pformat
+from .odoo_connection import get_file_full_path
 
 
 class ImportManager:
@@ -17,6 +18,7 @@ class ImportManager:
     def __init__(self, configurator):
         self.logger = get_logger("Imports ".ljust(15))
         self._connection = configurator.connection
+        self.odoo = self._connection.odoo
         self._context_base = self._connection.context.copy()
         self._context_base.update({'tracking_disable': True, '__import__': True})
         self._context = self._context_base
@@ -109,21 +111,9 @@ class ImportManager:
 
         return data
 
-    # @staticmethod
     def parse_csv_file_dictreader(self, file_path, fields, delimiter=","):
         vals = []
-        new_file_path = ''
-        if not os.path.isfile(file_path):
-            new_file_path = os.path.dirname(__file__) + '/' + file_path
-        if not os.path.isfile(new_file_path):
-            new_file_path = os.path.join(os.path.dirname(sys.argv[1]), 'datas', file_path)
-        if os.path.isfile(new_file_path):
-            file_path = new_file_path
-        else:
-            print("ERROR: file %s not found." % file_path)
-            return False
-
-
+        file_path = get_file_full_path(file_path)
         with open(file_path, 'r') as csvfile:
             reader = csv.DictReader(csvfile, skipinitialspace=True, delimiter=delimiter, quotechar='"')
             for i in range(self.skip_line):
@@ -140,8 +130,6 @@ class ImportManager:
                         method_to_call = getattr(ImportManager, method)
                         line[field] = method_to_call(fields[clean_field], line[field])
                 vals.append(line)
-
-
         return vals
 
     @staticmethod

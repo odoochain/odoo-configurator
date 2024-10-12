@@ -24,6 +24,7 @@ Provided file must contain the auth/odoo section to set connexion parameters.
 
 ```yml
     name: project_name local
+    version: 16.0
 
     inherits:
         - ../work_dir/project_name/project_name.yml
@@ -35,6 +36,8 @@ Provided file must contain the auth/odoo section to set connexion parameters.
             username: admin
             password: admin123
 ```
+
+The`version` parameter is required for odoo versions >= 15.0
 
 ## Inherits
 
@@ -218,6 +221,12 @@ Ir model Data Config:
                 ], 'desc')
 ```
 
+## Special field name
+
+field_name_id/id : to provide a xmlid to many2one fields instead of a value, without using get_ref
+field_name_ids/id : to provide a list of xmlid to many2many fields
+field_name/json : to provide a list or dict to convert into json string
+
 ## Server Actions and Functions
 
 To call a model function:
@@ -247,13 +256,10 @@ To call an action server (`ir.actions.server`):
 To set groups on a user you can remove previous groups with "unlink all":
 ```yml
     users:
-        datas:
+        users:
             User Example:
-                model: res.users
                 force_id: base.user_example
-                values:
-                    name: Example
-                    login: example@test.com
+                login: example@test.com
                 groups_id:
                     - unlink all
                     - base.group_portal
@@ -390,6 +396,38 @@ In yml file:
   - **limit** : Maximum number of record to import
   - **skip_line** : index of the record to start with
 
+## Specific Import with Python script
+
+```yml
+Import Scripts:
+  import_data:
+    Task Import 001:
+      model: project.product
+      file_path: scripts/products.csv
+      specific_import: scripts/import_products.py
+      specific_method: import_products
+```
+
+scripts/import_products.py :
+
+```python
+from odoo_configurator.import_manager import ImportManager
+
+def import_products(self, file_path, model, params):
+    self.set_params(params)
+    fields = self.get_model_fields(model)
+    raw_datas = self.parse_csv_file_dictreader(file_path, fields)
+    m_order = self.odoo.model('sale.order')
+    orders = m_order.search([], context=self._context)
+    self.logger.info('Orders : %s' % ','.join([o['name'] for o in orders]))
+    company_ids_cache = self.odoo.get_id_ref_dict('res.company')
+    company_xmlid_cache = self.odoo.get_xmlid_dict('res.company')
+    products = self.odoo.search('product.template', [], context=self._context)
+    ...
+
+ImportManager.import_products = import_products
+```
+
 
 ## Generate YML data file from a model
 
@@ -403,6 +441,7 @@ Actions:
             order_by: name, ref
             force_export_fields: ["email_formatted", "country_code"]
             excluded_fields: ["email", "country_id"]
+            context: {'active_test': False}
 ```
 
 ## Release Configuration

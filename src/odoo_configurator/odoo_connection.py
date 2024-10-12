@@ -11,6 +11,7 @@ import ssl
 import xmlrpc.client
 from pprint import pformat
 from .logging import get_logger
+from s6r_odoo import OdooConnection as Orm
 
 import requests
 from bs4 import BeautifulSoup
@@ -23,6 +24,8 @@ METHODE_MAPPING = {
 
 
 def get_file_full_path(path):
+    if not path:
+        return ''
     param_path = path
     if not os.path.isfile(path):
         path = os.path.join(os.path.dirname(sys.argv[1]), param_path)
@@ -33,12 +36,25 @@ def get_file_full_path(path):
     return path
 
 
+def get_dir_full_path(path):
+    if not path:
+        return ''
+    param_path = path
+    if not os.path.isdir(path):
+        path = os.path.join(os.path.dirname(sys.argv[1]), param_path)
+    if not os.path.isdir(path):
+        path = os.path.join(os.path.dirname(sys.argv[1]), 'datas', param_path)
+    if not os.path.isdir(path):
+        raise NotADirectoryError('%s not found!' % param_path)
+    return path
+
+
 class OdooConnection:
     _context = {'lang': 'fr_FR', 'noupdate': True}
     _cache = {}
 
     def __init__(self, url, dbname, user, password, version=False, http_user=None, http_password=None, createdb=False,
-                 debug_xmlrpc=False):
+                 debug_xmlrpc=False, configurator=None):
         self.logger = get_logger("Odoo Connection".ljust(15))
         if debug_xmlrpc:
             self.logger.setLevel(logging.DEBUG)
@@ -51,13 +67,26 @@ class OdooConnection:
         self._http_user = http_user
         self._http_password = http_password
         self._version = version
+        self._configurator = configurator
+        self.xmlid_cache = configurator.xmlid_cache if configurator else {}
         # noinspection PyProtectedMember,PyUnresolvedReferences
         self._insecure_context = ssl._create_unverified_context()
         self._load_cache()
         self._compute_url()
+        try:
+            self.odoo = Orm(self._url, self._dbname, self._user, self._password)
+        except ConnectionError:
+            exit(1)
+        except Exception as err:
+            self.logger.error(err)
         if createdb:
             self._create_db()
-        self._prepare_connection()
+        if self.odoo.uid:
+            self.common = self.odoo.common
+            self.object = self.odoo.object
+            self.uid = self.odoo.uid
+        else:
+            self._prepare_connection()
 
     @property
     def context(self):
@@ -137,16 +166,26 @@ class OdooConnection:
             else:
                 self.logger.error(pformat(args))
                 if isinstance(e, xmlrpc.client.Fault):
-                    self.logger.error(e.faultString, exc_info=True)
+                    self.logger.error(e.faultString)
+                    exit(1)
                 else:
-                    self.logger.error(e)
+                    self.logger.error(e, exc_info=True)
                 raise e
 
+    def search(self, model, domain, offset=0, limit=None, order=None, count=None, context=None):
+        args = [domain, offset, limit, order]
+        if self._version <= 16:
+            args.append(count)
+        return self.execute_odoo(model, 'search', args, {'context': context})
+
     def get_ref(self, external_id):
+        if external_id in self.xmlid_cache:
+            return self.xmlid_cache[external_id]
         res = self.execute_odoo('ir.model.data',
                                 self._get_xmlrpc_method('get_object_reference'),
                                 external_id.split('.'))[1]
         self.logger.debug('Get ref %s > %s' % (external_id, res))
+        self.xmlid_cache[external_id] = res
         return res
 
     def get_image_url(self, url):
@@ -158,15 +197,8 @@ class OdooConnection:
         return self._cache['image_url'][url]
 
     def get_image_local(self, path):
-        if 'path' not in self._cache:
-            self._cache['path'] = {}
         path = get_file_full_path(path)
-
-        if path not in self._cache['path']:
-
-            self._cache['path'][path] = base64.b64encode(open(path, "rb").read()).decode("utf-8", "ignore")
-            self._save_cache()
-        return self._cache['path'][path]
+        return base64.b64encode(open(path, "rb").read()).decode("utf-8", "ignore")
 
     @staticmethod
     def get_local_file(path, encode=False):
@@ -181,16 +213,15 @@ class OdooConnection:
         return res
 
     def get_country(self, code):
-        return self.execute_odoo('res.country', 'search', [[('code', '=', code)], 0, 1, "id", False],
-                                 {'context': self._context})[0]
+        return self.search('res.country', [('code', '=', code)],
+                           limit=1, order='id', context=self._context)[0]
 
     def get_menu(self, website_id, url):
-        return self.execute_odoo('website.menu', 'search',
-                                 [[('website_id', '=', website_id), ('url', '=', url)], 0, 1, "id", False],
-                                 {'context': self._context})[0]
+        return self.search('website.menu', [('website_id', '=', website_id), ('url', '=', url)],
+                           limit=1, order='id', context=self._context)[0]
 
     def get_search_id(self, model, domain, order='asc'):
-        res = self.execute_odoo(model, 'search', [domain, 0, 1, "id %s" % order, False], {'context': self._context})
+        res = self.search(model, domain, limit=1, order="id %s" % order, context=self._context)
         return res[0] if res else False
 
     def get_id_from_xml_id(self, xml_id, no_raise=False):
@@ -224,7 +255,7 @@ class OdooConnection:
         if search_value_xml_id:
             object_id = self.get_id_from_xml_id(search_value_xml_id)
             domain = [(domain[0][0], domain[0][1], object_id)]
-        object_ids = self.execute_odoo(model, 'search', [domain, 0, 0, "id", False], {'context': self._context})
+        object_ids = self.search(model,  domain, order='id', context=self._context)
         self.execute_odoo(model, 'write', [object_ids, {'active': is_active}], {'context': self._context})
 
     def read_search(self, model, domain, context=False):
@@ -233,7 +264,7 @@ class OdooConnection:
                                 {'context': context or self._context})
         return res
 
-    def search(self, model, domain=[], fields=[], order=[], offset=0, limit=0, context=False):
+    def search_read(self, model, domain=[], fields=[], order=[], offset=0, limit=0, context=False):
         params = [domain, fields, offset, limit, order]
         res = self.execute_odoo(model, 'search_read', params, {'context': context or self._context})
         return res
