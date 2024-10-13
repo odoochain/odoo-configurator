@@ -1,10 +1,11 @@
-# -*- coding: utf-8 -*-
 # Copyright (C) 2023 - Teclib'ERP (<https://www.teclib-erp.com>).
+# Copyright (C) 2024 - Scalizer (<https://www.scalizer.fr>).
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl.html).
 
 import base64
 import logging
 import os.path
+import re
 import sys
 import pickle
 import ssl
@@ -250,6 +251,15 @@ class OdooConnection:
         except Exception as e:  # TODO : get true exception type and return False
             raise e
             # return False
+
+    def create_xml_id(self, module, model, name, res_id):
+        name = re.sub('[^a-zA-Z0-9]', '_', name).lower()
+        self.odoo.create('ir.model.data', {
+            'module': module,
+            'name': name,
+            'model': model,
+            'res_id': res_id
+        })
 
     def set_active(self, is_active, model, domain, search_value_xml_id):
         if search_value_xml_id:

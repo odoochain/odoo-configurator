@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### Added
+
+ - Allows to pass a list of xmlid to import
+ - Allows to do csv imports in script mode
+
+## [3.6.1] - 2024-09-30
+
+### Added
+
+ - Allows to add several connections to different Odoo databases
+ - Allows to add sql connections to PostgresSQL and MSSQL databases and use them in script files
+
+## [3.6.0] - 2024-09-25
+
+### Added
+
+ - Create the XLMID on the database when a new one is computed during data import
+ - Allows to call script_files in script files
+ - Allows to call Config, Users and Modules in script files
+ - Improve logging
+
 ## [3.5.3] - 2024-09-10
 
 ### Fixed

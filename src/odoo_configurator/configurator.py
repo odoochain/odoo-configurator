@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # Copyright (C) 2023 - Teclib'ERP (<https://www.teclib-erp.com>).
+# Copyright 2024 Scalizer (<https://www.scalizer.fr>)
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl.html).
 
 from datetime import date
@@ -17,6 +17,7 @@ from .apps import system_parameter
 from .apps import datas
 from .apps import defaults
 from .apps import imports
+from .apps import python_script
 from .apps import modules
 from .apps import roles
 from .apps import translations
@@ -134,6 +135,11 @@ class Configurator:
         if parsed_config.get('clear_release_directory'):
             self.clear_release_directory = parsed_config.get('clear_release_directory')
 
+        self.parse_scripts(parsed_config)
+
+        return parsed_config, pre_update_config
+
+    def parse_scripts(self, parsed_config):
         parsed_config['scripts'] = []
         count_script = 0
         while len(parsed_config.get("script_files", [])) != count_script:
@@ -147,9 +153,9 @@ class Configurator:
                                                           parsed_script.get('title'))
                 else:
                     parsed_script['title'] = os.path.basename(script_file)
+                if 'script_files' in parsed_script:
+                    self.parse_scripts(parsed_script)
                 parsed_config['scripts'].append(parsed_script)
-
-        return parsed_config, pre_update_config
 
     def get_release_files(self):
         files = []
@@ -230,6 +236,7 @@ class Configurator:
         account.OdooAccount(self)
         website.OdooWebsite(self)
         imports.OdooImports(self)
+        python_script.PythonScript(self)
         import_configurator.ImportConfigurator(self)
         mattermost.Mattermost(self)
         call.OdooCalls(self)

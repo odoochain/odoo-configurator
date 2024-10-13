@@ -39,6 +39,30 @@ Provided file must contain the auth/odoo section to set connexion parameters.
 
 The`version` parameter is required for odoo versions >= 15.0
 
+It's also possible to provide auth for other odoo servers, these connections can be used in python script files and specific imports.
+```yml
+    auth:
+      odoo:
+        url: http://project_name.localhost
+        dbname: project_name
+        username: admin
+        password: admin
+        version: 16.0
+      odoo_base_v8:
+        url: http://old.odoo.localhost
+        dbname: project_name_v8
+        username: admin
+        password: admin
+        version: 8.0
+      odoo_base_v17:
+        url: http://next.odoo.localhost
+        dbname: project_name_v17
+        username: admin
+        password: admin
+        version: 17.0
+```
+
+
 ## Inherits
 
 Inherits param provide a list of configuration files witch content is merged before execution.
@@ -253,16 +277,18 @@ To call an action server (`ir.actions.server`):
 
 ## Users
 
-To set groups on a user you can remove previous groups with "unlink all":
+To set groups on a user you can remove previous groups with "unlink all".
 ```yml
     users:
-        users:
-            User Example:
+        Portal Users:
+            User Example 1:
                 force_id: base.user_example
                 login: example@test.com
                 groups_id:
                     - unlink all
                     - base.group_portal
+                values:
+                    name: Portal User Example 1
 ```
                     
 ## Other data tools
@@ -363,7 +389,7 @@ bitwarden_password: get_keepass_password('Bitwarden')
 Columns in the CSV file must be the technical name of the field.
 A column "id" is required to allow update of datas. 
 
-In yml file:
+In yml file, use the **import_csv** entry in the **import_data** section:
 
 ```yml
     import_data:
@@ -398,6 +424,8 @@ In yml file:
 
 ## Specific Import with Python script
 
+Use the **import_data** section:
+
 ```yml
 Import Scripts:
   import_data:
@@ -426,6 +454,90 @@ def import_products(self, file_path, model, params):
     ...
 
 ImportManager.import_products = import_products
+```
+
+
+## Run Python script
+
+Use the **python_script** section:
+
+```yml
+python_script:
+  Data Transfer:
+    file: scripts/transfer_script.py
+    method: data_transfer
+    params:
+      param1: TEST
+```
+
+It's possible to add connection to other odoo database by adding, for exemple, _odoo_base_v16_ in the **auth** section.
+_odoo_base_v16_ can be used easily in python scripts by referring to self.odoo_base_v16:
+
+```yml
+auth:
+  odoo:
+    url: http://odoo_my_customer17.localhost
+    dbname: my_customer17
+    username: admin
+    password: admin
+    version: 17.0
+  odoo_base_v16:
+    url: http://odoo_my_customer16.localhost
+    dbname: my_customer16
+    username: admin
+    password: admin
+    version: 16.0
+```
+
+scripts/transfer_script.py :
+
+```python
+from src.odoo_configurator.import_manager import ImportManager
+
+def data_transfer(self, params=dict):
+    # Search analytic lines on my_customer17 (the main database)
+    analytic_lines = self.odoo.search("account.analytic.line", [], fields=['name', 'partner_id'])
+    for analytic_line in analytic_lines:
+        if analytic_line['partner_id']:
+            partner_id = analytic_line['partner_id'][0]
+            # Read partner on my_customer16 (the extra database)
+            partner = self.odoo_base_v16.read('res.partner', [partner_id], fields=['name', 'email'])
+            if partner:
+                self.logger.info('analytic_line %s partner %s' % (analytic_line['id'], partner[0]['name']))
+
+ImportManager.data_transfer = data_transfer
+```
+
+## Connection to SQL database
+
+Use the **sql_auth** section:
+
+```yml
+sql_auth:
+  sql_my_shop:
+    db_type: postgresql
+    url: localhost
+    dbname: my_shop_prod
+    username: admin
+    password: get_keepass_password('My Shop Admin')
+```
+
+### Available database types
+ * Postgresql (postgresql)
+ * MS SQL Server (mssql)
+
+scripts/sql_transfer_script.py :
+
+```python
+from src.odoo_configurator.import_manager import ImportManager
+
+def sql_transfer(self, params=dict):
+    query = 'select name, email from res_partner'
+    cr = self.sql_my_shop.execute(query)
+    for partner_values in cr.fetchall():
+            self.logger.info('Partner %s' % partner_values['name'])
+
+ImportManager.sql_transfer = sql_transfer
 ```
 
 

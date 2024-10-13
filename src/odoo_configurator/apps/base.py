@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # Copyright (C) 2023 - Teclib'ERP (<https://www.teclib-erp.com>).
+# Copyright (C) 2024 - Scalizer (<https://www.scalizer.fr>).
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl.html).
 
 import logging
@@ -37,6 +37,7 @@ class OdooModule:
             self.get_ref = self._connection.get_ref
             self.get_record = self._connection.get_record
             self.default_get = self._connection.default_get
+            self.create_xml_id = self._connection.create_xml_id
         self.logger = get_logger(self._name.ljust(20))
         if self._debug:
             self.logger.setLevel(logging.DEBUG)
@@ -112,7 +113,7 @@ class OdooModule:
                     for i in search_key.split(','):
                         if values.get(i, False):
                             domain.append((i, '=', values[i]))
-                    if config[key].get('update_domain', False):
+                    if config[key].get('update_domain', False) or not model:
                         continue
 
                     object_ids = self.search(model, domain, order='id', context=self._context)
